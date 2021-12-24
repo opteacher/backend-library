@@ -1,93 +1,242 @@
 # backend-library
 
+后台自用库，包含统一的数据库接口、模型路由、文件夹路由等。
 
+## 安装方法
 
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+1. 【submodule 方式，也可 clone 下来】添加库
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/opteacher/backend-library.git
-git branch -M main
-git push -uf origin main
+mkdir lib && cd lib
+git submodule add git@gitlab.com:opteacher/backend-library.git
 ```
 
-## Integrate with your tools
+2. 修改 package.json
 
-- [ ] [Set up project integrations](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://gitlab.com/opteacher/backend-library/-/settings/integrations)
+- 添加依赖：
 
-## Collaborate with your team
+```json
+"dependencies": {
+  "koa-router": "^10.0.0",
+  "lodash": "^4.17.21",
+  "mongoose": "^6.1.2",
+  "mysql2": "^2.2.5",
+  "sequelize": "^4.38.0",
+  "toml": "^3.0.0"
+},
+"devDependencies": {
+  "@types/koa-router": "^7.4.4",
+  "@types/lodash": "^4.14.178",
+  "@types/sequelize": "^4.28.10",
+  "typescript": "~4.1.5" // 可选，ts 语言环境下
+}
+```
 
-- [ ] [Invite team members and collaborators](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+- 添加 npm 命令
 
-## Test and Deploy
+```json
+"scripts": {
+  "start:dev": "tsc && cd dist && cross-env ENV=dev node app.js", // 开发环境启动，环境变量dev
+  "start:prod": "tsc && cd dist && cross-env ENV=prod node app.js", // 生产环境启动，环境变量prod
+  "test": "cross-env ENV=dev jest", // 运行测试用例
+  "test-c": "cross-env ENV=dev jest --coverage" // 运行测试用例（生成覆盖率报告）
+}
+```
 
-Use the built-in continuous integration in GitLab.
+3. 【ts 语言环境】修改 tsconfig.json
 
-- [ ] [Get started with GitLab CI/CD](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+```json
+"allowJs": true // 允许复制js，不然js源文件不会出现在dist文件夹
+```
 
-***
+4. 添加配置文件
+   > 文件中的`*`表示环境标识
 
-# Editing this README
+- db.\*.toml
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!).  Thank you to [makeareadme.com](https://gitlab.com/-/experiment/new_project_readme_content:3b1d4e22f435307007194808492f4890?https://www.makeareadme.com/) for this template.
+```toml
+[mongo]
+database="# 数据库名"
+username="# 用户名"
+password="# 密码"
+host="#服.务.器.IP"
+port=27017
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+[mysql]
+database="# 数据库名"
+username="# 用户名"
+password="# 密码"
+host="#服.务.器.IP"
+port=3306
+```
 
-## Name
-Choose a self-explaining name for your project.
+- models.toml
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```toml
+version=1 # 模型路由的版本
+prefix="# 路由前缀"
+type="# 指定的数据源，对应上面db.*.toml方括号中的数据库"
+sync=false # 是否在启动时同步，【注意！】设为true会清空数据库
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+- server.\*.toml
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```toml
+env="# 环境标识，对应配置文件中的*号"
+port= # 运行端口
+admin="# 管理员，做签发token时会需要"
+secret="# 服务秘钥，用于加密"
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+5. 添加到 app.(j|t)s，这是启动文件
+   > 这里假设该库作为 submodule 放在 lib 文件夹中，实际使用可根据项目文件具体情况再设置
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+```javascript
+import { genApiRoutes } from "./lib/backend-library/router/index.js";
+import { genMdlRoutes } from "./lib/backend-library/models/index.js";
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+const __dirname = path.resolve(); // ts需添加此行
+// 以下两个变量需用到顶级await，具体设置参考google
+const router = await genApiRoutes(path.resolve(__dirname, "router"));
+const models = (
+	await genMdlRoutes(
+		path.resolve(__dirname, "models"),
+		path.resolve(__dirname, "..", "configs", "db"),
+		path.resolve(__dirname, "..", "configs", "models")
+	)
+).router;
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+6. 【可选】如果要使用 DB 接口，需调用 databases/index 的 getDbByName
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```javascript
+import path from "path";
+import { readConfig } from "../lib/backend-library/utils/index.js";
+import { getDbByName } from "../lib/backend-library/databases/index.js";
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+export const cfgPath = path.resolve("..", "configs");
+const mdlCfgPath = path.resolve(cfgPath, "models");
+const dbCfgPath = path.resolve(cfgPath, "db");
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+export function getDatabase() {
+	return getDbByName(readConfig(mdlCfgPath).type, dbCfgPath);
+}
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+至此，便可开始使用该库。
 
-## License
-For open source projects, say how it is licensed.
+## 使用方法
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### 模型路由
 
+如按以上安装操作，模型文件路径定义在项目目录下的 models 文件夹中。
+
+1. 【如果是自定义模型目录，跳过这步骤】创建 models 文件夹
+
+```
+mkdir models && cd models
+```
+
+2. 创建模型并配置字段等信息
+
+```javascript
+// 创建一个名为user.(j|t)s的文件，以下为内容
+import { createHmac } from "crypto";
+import { getServerInfo, getDatabase } from "../utils/index.js";
+
+// 此处用到安装步骤中第六步定义的getDatabase方法
+const db = await getDatabase();
+const svrCfg = getServerInfo();
+
+export default db.defineModel(
+	{
+		__modelName: "user", // 模型名
+		// 以下为字段，可用类型有
+		// Id: 项ID类型，可看作rowid
+		// String: 字符串
+		// Number: 数字
+		// Date: 日期
+		// Boolean: 布尔
+		// Array: 数组
+		// Object: 对象
+		username: db.PropTypes.String,
+		password: db.PropTypes.String,
+		phone: db.PropTypes.String,
+		avatar: db.PropTypes.String,
+	},
+	{
+		// 可定义中间件，用于介入数据库操作的前、中、后
+		middle: {
+			create: {
+				before(doc: any) {
+					// 此处介入数据库create操作之前，对传入的password做不可逆的sha256加密
+					if (doc.password.length !== 64) {
+						doc.password = createHmac("sha256", svrCfg.secret)
+							.update(doc.password)
+							.digest("hex");
+					}
+				},
+			},
+		},
+		// 生成的模型路由，对应增删改查为：POST/DELETE/PUT/GET/ALL
+		router: {
+			methods: ["POST", "DELETE", "PUT", "GET", "ALL"],
+		},
+	}
+);
+```
+
+- 重启项目后便可在终端看到新增模型生成的路由
+
+```
+POST    /model-prefix/mdl/v1/user
+DELETE  /model-prefix/mdl/v1/user/:id
+PUT     /model-prefix/mdl/v1/user/:id
+GET     /model-prefix/mdl/v1/user/:id
+GET     /model-prefix/mdl/v1/users
+```
+
+### 文件路由（koa-router）
+
+如按以上安装操作，文件路径定义在项目目录下的 router 文件夹中。
+
+1. 【如果是自定义模型目录，跳过这步骤】创建 router 文件夹
+
+```
+mkdir router && cd router
+```
+
+2. 按所需路由创建文件夹及最后的路由文件
+
+```javascript
+// router
+// |- api-prefix
+//    |- api
+//       |- v1
+//          |- test
+//             |- index.(j|t)s
+import Router from "koa-router";
+
+const router = new Router();
+
+router.get("/", (ctx) => {
+	ctx.body = {
+		result: "Hello world",
+	};
+});
+
+router.get("/:yourName", (ctx) => {
+	ctx.body = {
+		result: `Hello world ${ctx.request.params.yourName}`,
+	};
+});
+
+export default router;
+```
+
+这样变回生成如下文件路由
+
+```
+GET /api-test/api/v1/test
+GET /api-test/api/v1/test/:yourName
+```

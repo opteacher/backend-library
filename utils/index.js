@@ -30,6 +30,11 @@ export function scanPath(dirPath, options) {
     if (!options.orgPath) {
         options.orgPath = dirPath;
     }
+    try {
+        fs.accessSync(dirPath)
+    } catch (e) {
+        return []
+    }
 
     // @steps{2}:扫描当前目录下所有子目录和文件
     let subPathAry = [];

@@ -123,7 +123,7 @@ export async function genMdlRoutes(mdlsPath, dbCfgPath, mdlCfgPath) {
                     // @steps{3_3_2_5}:*DELETE*：同GET
                     router.delete(DelUrl, async(ctx) => {
                         ctx.body = {
-                            data: await db.delete(minfo, {
+                            data: await db.del(minfo, {
                                 _index: ctx.params.index,
                             }),
                         };

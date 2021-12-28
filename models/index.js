@@ -6,9 +6,8 @@ import { getDbByName } from '../databases/index.js';
 
 const router = new Router();
 
-export async function genMdlRoutes(mdlsPath, dbCfgPath, mdlCfgPath) {
+export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
     const cfg = utils.readConfig(mdlCfgPath);
-    const db = await getDbByName(cfg.type, dbCfgPath);
 
     // @block{modelRoutes}:模型生成路由
     // @includes:lodash
@@ -19,7 +18,7 @@ export async function genMdlRoutes(mdlsPath, dbCfgPath, mdlCfgPath) {
     // @steps{1}:引进所有模型
     const models = [];
     for (const mfile of utils.scanPath(mdlsPath, { ignores: ["index.js"] })) {
-        models.push((await import (Path.resolve(mdlsPath, mfile))).default);
+        models.push((await import(Path.resolve(mdlsPath, mfile))).default);
     }
 
     // @step{}:同步数据库
@@ -56,11 +55,7 @@ export async function genMdlRoutes(mdlsPath, dbCfgPath, mdlCfgPath) {
         const PutUrl = GetUrl;
         const DelUrl = GetUrl;
         const prePath = minfo.options.router.prePath;
-        const LnkUrl = prePath ?
-            `/${cfg.prefix}/mdl/v${cfg.version}/${prePath
-          .map((pp) => pp[1])
-          .join("/")}/${minfo.name}/:index` :
-            null;
+        const LnkUrl = prePath ? `/${cfg.prefix}/mdl/v${cfg.version}/${prePath.map((pp) => pp[1]).join("/")}/${minfo.name}/:index` : null;
 
         // @steps{3_3}:遍历用户要求的method接口
         for (const method of minfo.options.router.methods) {
@@ -71,13 +66,18 @@ export async function genMdlRoutes(mdlsPath, dbCfgPath, mdlCfgPath) {
                 case "get":
                     // @steps{3_3_2_1}:*GET*：根据id查找，**会联表**
                     router.get(GetUrl, async(ctx) => {
-                        ctx.body = {
-                            data: (
-                                await db.select(
-                                    minfo, { _index: ctx.params.index }, { ext: true }
-                                )
-                            )[0],
-                        };
+                        const data = await db.select(
+                            minfo, { _index: ctx.params.index }, { ext: true }
+                        );
+                        if (typeof data === 'string') {
+                            ctx.body = {
+                                error: data
+                            };
+                        } else {
+                            ctx.body = {
+                                data: data[0],
+                            };
+                        }
                     });
                     path = GetUrl;
                     console.log(`GET\t${GetUrl}`);
@@ -105,13 +105,18 @@ export async function genMdlRoutes(mdlsPath, dbCfgPath, mdlCfgPath) {
                 case "put":
                     // @steps{3_3_2_4}:*PUT*：同POST
                     router.put(PutUrl, async(ctx) => {
-                        ctx.body = {
-                            data: (
-                                await db.save(minfo, ctx.request.body, {
-                                    _index: ctx.params.index,
-                                })
-                            )[0],
-                        };
+                        const data = await db.save(minfo, ctx.request.body, {
+                            _index: ctx.params.index,
+                        });
+                        if (typeof data === "string") {
+                            ctx.body = {
+                                error: data
+                            };
+                        } else {
+                            ctx.body = {
+                                data: data[0],
+                            };
+                        }
                     });
                     path = PutUrl;
                     params.push({
@@ -151,7 +156,7 @@ export async function genMdlRoutes(mdlsPath, dbCfgPath, mdlCfgPath) {
                         }
                         const colNam = ary[0];
                         const pamIdx = ary[1].slice(1);
-                        const preMdl = models[colNam];
+                        const preMdl = models.find(mdl => mdl.name === colNam);
                         const condition = { _index: ctx.params[pamIdx] };
                         ctx.body = {
                             data: await db.save(
@@ -159,7 +164,7 @@ export async function genMdlRoutes(mdlsPath, dbCfgPath, mdlCfgPath) {
                                     [prop]: ctx.params.index,
                                 },
                                 condition, {
-                                    updMode: "append",
+                                    updMode: ctx.request.query.link ? 'append' : 'delete'
                                 }
                             ),
                         };

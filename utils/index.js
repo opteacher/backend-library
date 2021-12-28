@@ -41,20 +41,20 @@ export function scanPath(dirPath, options) {
     fs.readdirSync(dirPath).map((file) => {
         let absPth = path.join(dirPath, file);
         let relPth = absPth.replace(`${options.orgPath}${path.sep}`, "");
+        let pthInfo = path.parse(relPth);
         let fstat = fs.statSync(absPth);
         if (fstat.isDirectory()) {
             // @steps{2_1}:如果是目录，递归调用并把返回值合并进返回值中
             subPathAry = subPathAry.concat(scanPath(absPth, options));
         } else if (fstat.isFile()) {
-            const pthInfo = path.parse(relPth);
             // @steps{2_2}:如果是文件，查看是否指定忽略
-            let bIgnore = false;
-            options.ignores.map((ignore) => {
+            let bIgnore = false
+            options.ignores.map(ignore => {
                 if (ignore[0] === "*") {
                     // @steps{2_2_1}:如果文件名为*，则检查文件后缀
-                    let ext = ignore.slice(1);
+                    let ext = ignore.slice(1)
                     if (pthInfo.ext === ext) {
-                        bIgnore = true;
+                    bIgnore = true
                     }
                 } else {
                     // @steps{2_2_2}:如果忽略的是目录，查看相对路径的前ignore\
@@ -63,9 +63,9 @@ export function scanPath(dirPath, options) {
                     //         ignore -> node_modules/
                     //         relPth -> node_modules/koa/Readme.md
                     //         ```
-                    let pth = relPth;
+                    let pth = relPth
                     if (relPth.length > ignore.length) {
-                        pth = relPth.slice(0, ignore.length);
+                        pth = relPth.slice(0, ignore.length)
                     }
                     // @_steps{2_2_3}:如果忽略的是文件，查看相对路径的后ignore\
                     //         长度的字符串是否相等
@@ -77,22 +77,70 @@ export function scanPath(dirPath, options) {
                     // if(relPth.length > ignore.length) {
                     //   pth = relPth.slice(-ignore.length)
                     // }
-                    if (pth === ignore) {
-                        bIgnore = true;
+                    if (pthInfo.base === ignore) {
+                        bIgnore = true
                     }
                 }
-            });
-            let extMatch = true;
-            if (options.ext) {
-                extMatch = pthInfo.ext.toLowerCase() === options.ext;
-            }
+            })
             // @steps{2_3}:最后把子文件路径塞入返回值中
-            if (!bIgnore && extMatch) {
-                subPathAry.push(relPth);
-            }
+            !bIgnore && subPathAry.push(relPth)
         }
     });
     return subPathAry;
+}
+
+export function copyDir (src, dest, options) {
+    if (!options) {
+        options = {};
+    }
+    if (!options.ignores) {
+        options.ignores = [];
+    }
+    try {
+        fs.accessSync(dest);
+    } catch (e) {
+        fs.mkdirSync(dest, { recursive: true });
+    }
+    try {
+        fs.accessSync(src);
+    } catch (e) {
+        return false;
+    }
+    // console.log("src:" + src + ", dest:" + dest);
+    // 拷贝新的内容进去
+    fs.readdirSync(src).forEach(function (item) {
+        if (options.ignores.includes(item)) {
+            return
+        }
+        const item_path = path.join(src, item);
+        const temp = fs.statSync(item_path);
+        if (temp.isFile()) { // 是文件
+           // console.log("Item Is File:" + item);
+            fs.copyFileSync(item_path, path.join(dest, item));
+        } else if (temp.isDirectory()){ // 是目录
+            // console.log("Item Is Directory:" + item);
+            copyDir(item_path, path.join(dest, item), options);
+        }
+    });
+}
+
+export function delDir (path) {
+    if (fs.existsSync(path)) {
+        if (fs.statSync(path).isDirectory()) {
+            let files = fs.readdirSync(path);
+            files.forEach((file, index) => {
+                let currentPath = path + "/" + file;
+                if (fs.statSync(currentPath).isDirectory()) {
+                    delDir(currentPath);
+                } else {
+                    fs.unlinkSync(currentPath);
+                }
+            });
+            fs.rmdirSync(path);
+        } else {
+            fs.unlinkSync(path);
+        }
+    }
 }
 
 export function readConfig(cfgFile, withEnv = false) {
@@ -113,8 +161,12 @@ export function fixEndsWith(text, suffix) {
     );
 }
 
+export function rmvStartsOf(text, prefix) {
+    return text.substring(0, prefix.length) === prefix ? text.substring(prefix.length) : text;
+}
+
 export function rmvEndsOf(text, suffix) {
-    const index = text.indexOf(suffix);
+    const index = text.lastIndexOf(suffix);
     return index !== -1 ? text.substring(0, index) : text;
 }
 

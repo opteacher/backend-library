@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import mongoose from 'mongoose'
 mongoose.Promise = global.Promise
-import { getErrContent } from '../utils/index.js'
+import { getErrContent, rmvEndsOf } from '../utils/index.js'
 
 // @block{Mongo}:mongodb的实例类
 // @role:数据库操作类
@@ -223,24 +223,35 @@ Mongo.prototype.save = function(mdlInf, values, condition, options) {
         } else {
             res = res.map(obj => {
                 _.forIn(values, (v, k) => {
-                    let propType = null
+                    let propType = mdlInf.struct[k]
                     switch (options.updMode.toLowerCase()) {
                         case 'append':
-                            propType = mdlInf.struct[k]
-                            if (propType instanceof String) {
-                                obj[k] += v
+                            if (propType instanceof String
+                            || propType.name === 'Number') {
+                                obj.set(k, obj.get(k) + v)
                             } else if (propType instanceof Array) {
                                 // https://github.com/Automattic/mongoose/issues/4455
-                                obj[k] = obj[k].concat([v])
-                            } else if (propType.name === 'Number') {
-                                obj[k] += v
+                                obj.set(k, obj.get(k).concat(v))
                             } else {
-                                obj[k] = v
+                                obj.set(k, v)
+                            }
+                            break
+                        case 'delete':
+                            if (propType instanceof String) {
+                                obj.set(k, '')
+                            } else if (propType.name === 'Number') {
+                                obj.set(k, 0)
+                            } else if (propType instanceof Array) {
+                                const array = obj.get(k)
+                                array.splice(array.findIndex(el => el === v))
+                                obj.set(k, array)
+                            } else {
+                                obj.set(k, null)
                             }
                             break
                         case 'cover':
                         default:
-                            obj[k] = v
+                            obj.set(k, v)
                     }
                 })
                 return obj.save()
@@ -266,7 +277,6 @@ Mongo.prototype.del = function(mdlInf, condition, options) {
 Mongo.prototype.genPreRoutes = function() {
     for (const [mdlNam, mdlInf] of Object.entries(this.models)) {
         _.forIn(this.getRefCollection(mdlInf.struct), (colNam, prop) => {
-            colNam = _.upperFirst(colNam)
             let prePath = []
             prePath.push(prop)
             prePath.push(`${mdlNam}/:${mdlNam}_id`)

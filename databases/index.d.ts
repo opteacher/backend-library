@@ -83,3 +83,5 @@ interface SetOptions extends OperOptions {
 }
 
 export declare function getDbByName (name: string, cfgPath: string): Promise<DataBase>
+
+export declare function getAvaDbs (): string[]

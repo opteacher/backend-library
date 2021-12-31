@@ -128,21 +128,16 @@ Mongo.prototype.defineModel = function(struct, options) {
             if (!(stage in self.Middles)) { return }
             switch (stage) {
                 case 'before':
-                    schema[self.Middles[stage]](
-                        self.Middles[obs],
-                        function(next) {
-                            func(this)
-                            next()
-                        }
-                    )
+                    schema.pre(self.Middles[obs], function(next) {
+                        func(this)
+                        next()
+                    })
                     break
                 case 'doing':
                     console.error('mongoose不支持doing中间件')
                     break
                 case 'after':
-                    schema[self.Middles[stage]](
-                        self.Middles[obs], func
-                    )
+                    schema.post(self.Middles[obs], func)
                     break
             }
         })
@@ -160,11 +155,10 @@ Mongo.prototype.defineModel = function(struct, options) {
 
 Mongo.prototype.select = function(mdlInf, condition, options) {
     if (!options) { options = {} }
-    if (!options.cvtId) { options.cvtId = true }
     if (!condition) { condition = {} }
-    if (condition.id && options.cvtId) {
-        condition._id = condition.id
-        delete condition.id
+    if (condition._index) {
+        condition._id = condition._index
+        delete condition._index
     }
 
     return this.connect().then(() => {
@@ -203,11 +197,10 @@ Mongo.prototype.select = function(mdlInf, condition, options) {
 
 Mongo.prototype.save = function(mdlInf, values, condition, options) {
     if (!options) { options = {} }
-    if (!options.cvtId) { options.cvtId = true }
     if (!options.updMode) { options.updMode = 'cover' }
-    if (condition && condition.id && options.cvtId) {
-        condition._id = condition.id
-        delete condition.id
+    if (condition && condition._index) {
+        condition._id = condition._index
+        delete condition._index
     }
 
     return this.connect().then(() => {
@@ -217,7 +210,7 @@ Mongo.prototype.save = function(mdlInf, values, condition, options) {
             return mdlInf.model.find(condition)
         }
     }).then(res => {
-        if (!res) {
+        if (!res || !res.length) {
             res = new mdlInf.model(values)
             res = [res.save()]
         } else {
@@ -263,10 +256,9 @@ Mongo.prototype.save = function(mdlInf, values, condition, options) {
 
 Mongo.prototype.del = function(mdlInf, condition, options) {
     if (!options) { options = {} }
-    if (!options.cvtId) { options.cvtId = true }
-    if (condition && condition.id && options.cvtId) {
-        condition._id = condition.id
-        delete condition.id
+    if (condition && condition._index) {
+        condition._id = condition._index
+        delete condition._index
     }
 
     return this.connect().then(() => {

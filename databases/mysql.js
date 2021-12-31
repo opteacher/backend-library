@@ -142,8 +142,8 @@ class Mysql {
 
         let conds = {}
         if (_.keys(condition).length !== 0) {
-            if (condition.id && typeof condition.id === "string") {
-                condition.id = parseInt(condition.id)
+            if (condition._index && typeof condition._index === "string") {
+                condition._index = parseInt(condition._index)
             }
             conds["where"] = condition
             if (condition.order_by) {

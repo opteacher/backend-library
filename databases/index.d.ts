@@ -4,7 +4,7 @@ import * as mongoose from 'mongoose'
 type Middle = 'select' | 'create' | 'update' | 'save' | 'delete' | 'valid';
 type Process = 'before' | 'doing' | 'after';
 type Type = 'Id' | 'String' | 'Number' | 'Date' | 'Boolean' | 'Array' | 'Object';
-type UpdMode = 'cover' | 'append';
+type UpdMode = 'cover' | 'append' | 'delete';
 type Method = 'GET' | 'POST' | 'DELETE' | 'PUT' | 'ALL' | 'LINK';
 
 type DefineMiddle = {

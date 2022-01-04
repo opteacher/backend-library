@@ -95,28 +95,28 @@ secret="# 服务秘钥，用于加密"
 import { genApiRoutes } from "./lib/backend-library/router/index.js";
 import { genMdlRoutes } from "./lib/backend-library/models/index.js";
 
-const __dirname = path.resolve(); // ts需添加此行
+const __dirname = Path.resolve(); // ts需添加此行
 // 以下两个变量需用到顶级await，具体设置参考google
-const router = await genApiRoutes(path.resolve(__dirname, "router"));
-const models = (
-	await genMdlRoutes(
-		path.resolve(__dirname, "models"),
-		path.resolve(__dirname, "..", "configs", "db"),
-		path.resolve(__dirname, "..", "configs", "models")
-	)
-).router;
+const router = await genApiRoutes(
+  Path.resolve('routes')
+)
+const models = (await genMdlRoutes(
+  db,
+  Path.resolve('models'),
+  Path.resolve('configs', 'models')
+)).router
 ```
 
 6. 【可选】如果要使用 DB 接口，需调用 databases/index 的 getDbByName
 
 ```javascript
-import path from "path";
+import Path from "Path";
 import { readConfig } from "../lib/backend-library/utils/index.js";
 import { getDbByName } from "../lib/backend-library/databases/index.js";
 
-export const cfgPath = path.resolve("..", "configs");
-const mdlCfgPath = path.resolve(cfgPath, "models");
-const dbCfgPath = path.resolve(cfgPath, "db");
+export const cfgPath = Path.resolve("..", "configs");
+const mdlCfgPath = Path.resolve(cfgPath, "models");
+const dbCfgPath = Path.resolve(cfgPath, "db");
 
 export function getDatabase() {
 	return getDbByName(readConfig(mdlCfgPath).type, dbCfgPath);

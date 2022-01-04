@@ -180,9 +180,9 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
             });
         }
     }
-    router.get(`/${cfg.prefix}/mdl/v${cfg.version}/model`, async(ctx) => {
+    router.get(`/${cfg.prefix}/mdl/v${cfg.version}`, async(ctx) => {
         ctx.body = { version: cfg.version, routes: mdlRoutes };
     });
-    console.log(`GET\t/${cfg.prefix}/mdl/v${cfg.version}/model`);
+    console.log(`GET\t/${cfg.prefix}/mdl/v${cfg.version}`);
     return { router, models, db };
 }

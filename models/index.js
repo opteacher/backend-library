@@ -39,10 +39,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
             }
         }
     };
-    syncFunc();
-
-    // @steps{2}:根据模型之间的关系，生成前置路径
-    db.genPreRoutes();
+    await syncFunc();
 
     // @steps{3}:遍历所有模型
     console.log("模型生成的路由：");
@@ -54,8 +51,6 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
         const PostUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}`;
         const PutUrl = GetUrl;
         const DelUrl = GetUrl;
-        const prePath = minfo.options.router.prePath;
-        const LnkUrl = prePath ? `/${cfg.prefix}/mdl/v${cfg.version}/${prePath.map((pp) => pp[1]).join("/")}/${minfo.name}/:index` : null;
 
         // @steps{3_3}:遍历用户要求的method接口
         for (const method of minfo.options.router.methods) {
@@ -142,36 +137,55 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                     //             /mdl/vx/target/:tid/source/:sid
                     //             // 意味着source[sid]关联到target[tid]
                     //             ```
-                    if (!LnkUrl || !prePath) {
-                        break;
-                    }
-                    router.put(LnkUrl, async(ctx) => {
-                        const lstPre = prePath[prePath.length - 1];
-                        const prop = lstPre[0];
-                        const path = lstPre[1];
-                        const ary = path.split("/");
-                        if (ary.length !== 2) {
-                            ctx.body = "错误的路由前缀";
-                            return;
+                    for (const [prop, value] of Object.entries(minfo.struct)) {
+                        let val = value
+                        if (value instanceof Array) {
+                            val = value[0]
                         }
-                        const colNam = ary[0];
-                        const pamIdx = ary[1].slice(1);
-                        const preMdl = models.find(mdl => mdl.name === colNam);
-                        const condition = { _index: ctx.params[pamIdx] };
-                        ctx.body = {
-                            data: await db.save(
-                                preMdl, {
-                                    [prop]: ctx.params.index,
-                                },
-                                condition, {
-                                    updMode: ctx.request.query.link ? 'append' : 'delete'
-                                }
-                            ),
-                        };
-                    });
-                    path = LnkUrl;
-                    console.log(`LINK\t${LnkUrl}`);
-                    break;
+                        if (!val.ref) {
+                            continue;
+                        }
+                        const LnkUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}/:parent_idx/${prop}/:child_idx`
+                        router.put(LnkUrl, async(ctx) => {
+                            ctx.body = {
+                                data: await db.save(
+                                    minfo, {
+                                        [prop]: ctx.params.child_idx,
+                                    }, {
+                                        _index: ctx.params.parent_idx,
+                                    }, {
+                                        updMode: 'append'
+                                    }
+                                ),
+                            };
+                        });
+                        mdlRoutes.push({
+                            LnkUrl,
+                            method: 'PUT',
+                            params: [],
+                        });
+                        console.log(`PUT\t${LnkUrl}`);
+                        router.delete(LnkUrl, async(ctx) => {
+                            ctx.body = {
+                                data: await db.save(
+                                    minfo, {
+                                        [prop]: ctx.params[`${val.ref}_idx`],
+                                    }, {
+                                        _index: ctx.params[`${minfo.name}_idx`],
+                                    }, {
+                                        updMode: 'delete'
+                                    }
+                                ),
+                            };
+                        });
+                        mdlRoutes.push({
+                            LnkUrl,
+                            method: 'DELETE',
+                            params: [],
+                        });
+                        console.log(`DELETE\t${LnkUrl}`);
+                    }
+                    continue;
             }
             mdlRoutes.push({
                 path,

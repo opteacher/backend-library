@@ -23,7 +23,8 @@ function Mongo(config) {
             Date: Date,
             Boolean: Boolean,
             Array: Array,
-            Object: Map
+            Object: Map,
+            Any: mongoose.Schema.Types.Mixed
         },
         writable: false
     })

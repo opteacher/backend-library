@@ -3,7 +3,7 @@ import * as mongoose from 'mongoose'
 
 type Middle = 'select' | 'create' | 'update' | 'save' | 'delete' | 'valid';
 type Process = 'before' | 'doing' | 'after';
-type Type = 'Id' | 'String' | 'Number' | 'Date' | 'Boolean' | 'Array' | 'Object';
+type Type = 'Id' | 'String' | 'Number' | 'Date' | 'Boolean' | 'Array' | 'Object' | 'Any';
 type UpdMode = 'cover' | 'append' | 'delete';
 type Method = 'GET' | 'POST' | 'DELETE' | 'PUT' | 'ALL' | 'LINK';
 
@@ -60,7 +60,6 @@ interface TypeMapper {
 declare class DataBase {
   get PropTypes (): TypeMapper;
   connect (): Promise<Conn>;
-  genPreRoutes (): void;
   useDataBase (dbName: string): Promise<boolean>;
   defineModel (struct: NamedStruct, options?: DefineOptions): MdlInf;
   select (mdlInf: MdlInf, condition?: any, options?: SelectOptions): Promise<any>;

@@ -237,7 +237,7 @@ Mongo.prototype.save = function(mdlInf, values, condition, options) {
                                 obj.set(k, 0)
                             } else if (propType instanceof Array) {
                                 const array = obj.get(k)
-                                array.splice(array.findIndex(el => el === v))
+                                array.splice(array.indexOf(v), 1)
                                 obj.set(k, array)
                             } else {
                                 obj.set(k, null)

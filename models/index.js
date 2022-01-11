@@ -169,9 +169,9 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                             ctx.body = {
                                 data: await db.save(
                                     minfo, {
-                                        [prop]: ctx.params[`${val.ref}_idx`],
+                                        [prop]: ctx.params.child_idx,
                                     }, {
-                                        _index: ctx.params[`${minfo.name}_idx`],
+                                        _index: ctx.params.parent_idx,
                                     }, {
                                         updMode: 'delete'
                                     }

@@ -70,7 +70,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                             };
                         } else {
                             ctx.body = {
-                                data: data[0],
+                                data: data,
                             };
                         }
                     });
@@ -92,7 +92,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                     // @steps{3_3_2_3}:*POST*：**使用form表单提交**
                     router.post(PostUrl, async(ctx) => {
                         ctx.body = {
-                            data: (await db.save(minfo, ctx.request.body))[0],
+                            data: await db.save(minfo, ctx.request.body),
                         };
                     });
                     console.log(`POST\t${PostUrl}`);
@@ -109,7 +109,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                             };
                         } else {
                             ctx.body = {
-                                data: data[0],
+                                data,
                             };
                         }
                     });

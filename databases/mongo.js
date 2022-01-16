@@ -157,12 +157,12 @@ Mongo.prototype.defineModel = function(struct, options) {
 Mongo.prototype.select = function(mdlInf, condition, options) {
     if (!options) { options = {} }
     if (!condition) { condition = {} }
-    if (condition._index) {
-        condition._id = condition._index
-        delete condition._index
-    }
 
     return this.connect().then(() => {
+        if (condition._index) {
+            return mdlInf.model.findById(condition._index)
+        }
+
         let order_by = null
         if (condition.order_by) {
             order_by = condition.order_by
@@ -199,57 +199,59 @@ Mongo.prototype.select = function(mdlInf, condition, options) {
 Mongo.prototype.save = function(mdlInf, values, condition, options) {
     if (!options) { options = {} }
     if (!options.updMode) { options.updMode = 'cover' }
-    if (condition && condition._index) {
-        condition._id = condition._index
-        delete condition._index
+
+    function _saveOne (obj) {
+        _.forIn(values, (v, k) => {
+            let propType = mdlInf.struct[k]
+            switch (options.updMode.toLowerCase()) {
+                case 'append':
+                    if (propType instanceof String
+                    || propType.name === 'Number') {
+                        obj.set(k, obj.get(k) + v)
+                    } else if (propType instanceof Array) {
+                        // https://github.com/Automattic/mongoose/issues/4455
+                        obj.set(k, obj.get(k).concat(v))
+                    } else {
+                        obj.set(k, v)
+                    }
+                    break
+                case 'delete':
+                    if (propType instanceof String) {
+                        obj.set(k, '')
+                    } else if (propType.name === 'Number') {
+                        obj.set(k, 0)
+                    } else if (propType instanceof Array) {
+                        const array = obj.get(k)
+                        array.splice(array.indexOf(v), 1)
+                        obj.set(k, array)
+                    } else {
+                        obj.set(k, null)
+                    }
+                    break
+                case 'cover':
+                default:
+                    obj.set(k, v)
+            }
+        })
+        return obj.save()
     }
 
     return this.connect().then(() => {
         if (!condition) {
             return Promise.resolve()
+        } else if (condition._index) {
+            return mdlInf.model.findById(condition._index)
         } else {
             return mdlInf.model.find(condition)
         }
     }).then(res => {
-        if (!res || !res.length) {
+        if (!res && !res.length) {
             res = new mdlInf.model(values)
-            res = [res.save()]
+            res = res.save()
+        } if (res) {
+            res = _saveOne(res)
         } else {
-            res = res.map(obj => {
-                _.forIn(values, (v, k) => {
-                    let propType = mdlInf.struct[k]
-                    switch (options.updMode.toLowerCase()) {
-                        case 'append':
-                            if (propType instanceof String
-                            || propType.name === 'Number') {
-                                obj.set(k, obj.get(k) + v)
-                            } else if (propType instanceof Array) {
-                                // https://github.com/Automattic/mongoose/issues/4455
-                                obj.set(k, obj.get(k).concat(v))
-                            } else {
-                                obj.set(k, v)
-                            }
-                            break
-                        case 'delete':
-                            if (propType instanceof String) {
-                                obj.set(k, '')
-                            } else if (propType.name === 'Number') {
-                                obj.set(k, 0)
-                            } else if (propType instanceof Array) {
-                                const array = obj.get(k)
-                                array.splice(array.indexOf(v), 1)
-                                obj.set(k, array)
-                            } else {
-                                obj.set(k, null)
-                            }
-                            break
-                        case 'cover':
-                        default:
-                            obj.set(k, v)
-                    }
-                })
-                return obj.save()
-            })
+            res = res.map(_saveOne)
         }
         return Promise.all(res)
     }).catch(error => { return getErrContent(error) })

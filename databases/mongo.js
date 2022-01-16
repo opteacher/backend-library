@@ -160,7 +160,13 @@ Mongo.prototype.select = function(mdlInf, condition, options) {
 
     return this.connect().then(() => {
         if (condition._index) {
-            return mdlInf.model.findById(condition._index)
+            let res = mdlInf.model.findById(condition._index)
+            if (options.ext) {
+                _.forIn(this.getRefCollection(mdlInf.struct), (_, prop) => {
+                    res = res.populate(prop)
+                })
+            }
+            return res.exec()
         }
 
         let order_by = null

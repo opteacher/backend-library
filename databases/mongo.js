@@ -245,15 +245,12 @@ Mongo.prototype.save = function(mdlInf, values, condition, options) {
             return mdlInf.model.find(condition)
         }
     }).then(res => {
-        if (!res && !res.length) {
-            res = new mdlInf.model(values)
-            res = res.save()
-        } if (res) {
-            res = _saveOne(res)
+        if (res) {
+            res = res.length ? res.map(_saveOne) : _saveOne(res)
         } else {
-            res = res.map(_saveOne)
+            res = (new mdlInf.model(values)).save()
         }
-        return Promise.all(res)
+        return res.length ? Promise.all(res) : res
     }).catch(error => { return getErrContent(error) })
 }
 

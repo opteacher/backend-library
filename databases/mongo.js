@@ -231,7 +231,7 @@ Mongo.prototype.save = function(mdlInf, values, condition, options) {
                         array.splice(array.indexOf(v), 1)
                         obj.set(k, array)
                     } else {
-                        obj.set(k, null)
+                        obj[k] = undefined
                     }
                     break
                 case 'cover':

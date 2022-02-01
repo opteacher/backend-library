@@ -84,3 +84,13 @@ interface SetOptions extends OperOptions {
 export declare function getDbByName (name: string, cfgPath: string): Promise<DataBase>
 
 export declare function getAvaDbs (): string[]
+
+export declare function fmtQuerySQL (
+  sql: string,
+  query: { [name: string]: any },
+  symbol: string,
+  options?: {
+    addWhere?: boolean,
+    tags?: string[]
+  }
+): string

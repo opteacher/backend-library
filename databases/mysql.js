@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { Sequelize, DataTypes } from 'sequelize'
+import Sequelize from 'sequelize'
 const Op = Sequelize.Op
 import { getErrContent } from '../utils/index.js'
 
@@ -23,8 +23,6 @@ class Mysql {
             Date: Sequelize.DATE,
             Boolean: Sequelize.BOOLEAN,
             Decimal: Sequelize.DECIMAL(64, 20),
-            Array: Sequelize.STRING,
-            Object: DataTypes.JSON,
         }
         this.Middles = {
             select: '',
@@ -272,7 +270,7 @@ class Mysql {
         }
 
         if (condition) {
-            const result = await this.select(mdlInf.model, condition, null)
+            const result = await this.select(mdlInf, condition, null)
             if (result instanceof Array) {
                 return result.map(entity => _saveOne(entity))
                     .catch(err => getErrContent(err))
@@ -289,6 +287,7 @@ class Mysql {
     del (mdlInf, condition, _options) {
         if (condition._index) {
             condition.id = parseInt(condition._index)
+            delete condition._index
         }
         return mdlInf.model.destroy({ where: condition })
             .catch(err => getErrContent(err))

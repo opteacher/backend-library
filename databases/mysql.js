@@ -16,7 +16,7 @@ class Mysql {
     constructor (config) {
         this.config = config
         this.models = {}
-        this.Types = {
+        this.PropTypes = {
             Id: Sequelize.UUID,
             String: Sequelize.STRING,
             Number: Sequelize.INTEGER,

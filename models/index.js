@@ -26,7 +26,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
             await Promise.all(cfg.sync.map((tname) => db.sync(models.find(model => model.name === tname).model)))
             console.log('数据库模型同步完毕')
         } else if (cfg.sync) {
-            await Promise.all(_.values(models).map(db.sync))
+            await Promise.all(_.values(models).map((minfo) => db.sync(minfo)))
             console.log('数据库模型同步完毕')
         }
         if (cfg.inits) {

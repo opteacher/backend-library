@@ -1,7 +1,7 @@
-import _ from "lodash"
-import Sequelize from "sequelize"
+import _ from 'lodash'
+import { Sequelize, DataTypes } from 'sequelize'
 const Op = Sequelize.Op
-import { getErrContent } from "../utils/index.js"
+import { getErrContent } from '../utils/index.js'
 
 // @block{Mongo}:mongodb的实例类
 // @role:数据库操作类
@@ -13,7 +13,7 @@ import { getErrContent } from "../utils/index.js"
 // @description:常量：
 //  * *Types*[`object`]：可用列类型
 class Mysql {
-    constructor(config) {
+    constructor (config) {
         this.config = config
         this.models = {}
         this.Types = {
@@ -22,29 +22,36 @@ class Mysql {
             Number: Sequelize.INTEGER,
             Date: Sequelize.DATE,
             Boolean: Sequelize.BOOLEAN,
-            Decimal: Sequelize.DECIMAL(64, 20)
+            Decimal: Sequelize.DECIMAL(64, 20),
+            Array: Sequelize.STRING,
+            Object: DataTypes.JSON,
         }
         this.Middles = {
-            select: "",
-            create: "create",
-            update: "update",
-            save: "save",
-            delete: "destroy",
-            valid: "validation",
-            before: "before",
-            after: "after"
+            select: '',
+            create: 'create',
+            update: 'update',
+            save: 'save',
+            delete: 'destroy',
+            valid: 'validation',
+            before: 'before',
+            after: 'after'
         }
     }
 
-    _getRefCollection(struct) {
-        let ret = {}
-        _.forIn(struct, (v, k) => {
-            let val = v
+    static getRefCollection (struct) {
+        const ret = {}
+        for (const [key, val] of Object.entries(struct)) {
             if (val instanceof Array) {
-                val = val[0]
+                if (val[0].ref) {
+                    ret[key] = {
+                        ref: val[0].ref,
+                        array: true
+                    }
+                } else if (val.ref) {
+                    ret[key] = val.ref
+                }
             }
-            if (val.ref) { ret[k] = val.ref }
-        })
+        }
         return ret
     }
 
@@ -52,7 +59,7 @@ class Mysql {
     // @description:连接后方可操作数据库
     // @type:function (prototype)
     // @return{conn}[Promise]:连接Promise
-    connect() {
+    connect () {
         return new Sequelize(
             this.config.database,
             this.config.username,
@@ -85,25 +92,25 @@ class Mysql {
     //      > 每个中间件属性都可以定义before/doing/after三个子属性
     // @notices:因为在mongoose中，创建/更新/保存都用的同\
     //  一个save接口，所以这三个操作无法同时定义，待修复
-    defineModel(struct, options) {
+    defineModel (struct, options) {
         if (!options) { options = {} }
         if (!options.middle) { options.middle = {} }
 
-        let mdlName = struct.__modelName
+        const mdlName = struct.__modelName
         delete struct.__modelName
 
         if (!options.operate) { options.operate = {} }
         const setOperate = name => {
             if (!options.operate[name]) {
                 options.operate[name] = {
-                    columns: _.keys(struct)
+                    columns: Object.keys(struct)
                 }
             }
         }
-        setOperate("select")
-        setOperate("update")
-        setOperate("create")
-        setOperate("delete")
+        setOperate('select')
+        setOperate('update')
+        setOperate('create')
+        setOperate('delete')
         _.forIn(struct, (prop, name) => {
             if (prop.excludes) {
                 prop.excludes.map(oper => {
@@ -113,14 +120,14 @@ class Mysql {
             }
         })
 
-        let self = this
-        let middle = { hooks: {} }
+        const self = this
+        const middle = { hooks: {} }
         _.forIn(options.middle, (v, obs) => {
             if (!(obs in self.Middles)) { return }
             _.forIn(v, (func, stage) => {
                 if (!(stage in self.Middles)) { return }
-                if (stage === "doing") {
-                    console.error("mongoose不支持doing中间件")
+                if (stage === 'doing') {
+                    console.error('mongoose不支持doing中间件')
                     return
                 }
                 middle.hooks[`${stage}${_.upperFirst(obs)}`] = func
@@ -128,6 +135,12 @@ class Mysql {
         })
 
         const model = this.connect().define(mdlName, struct, middle)
+        // @_@: 暂不支持链表
+        // for (const [prop, refTbl] of Object.entries(Mysql.getRefCollection(struct))) {
+        //     model[refTbl.array ? 'hasMany' : 'hasOne'](
+        //         this.models[refTbl.ref || refTbl].model, { foreignKey: prop }
+        //     )
+        // }
         this.models[mdlName] = {
             model,
             name: mdlName,
@@ -137,15 +150,18 @@ class Mysql {
         return this.models[mdlName]
     }
 
-    select(mdlInf, condition, options) {
+    select (mdlInf, condition, options) {
         if (!options) { options = {} }
 
-        let conds = {}
-        if (_.keys(condition).length !== 0) {
-            if (condition._index && typeof condition._index === "string") {
-                condition._index = parseInt(condition._index)
+        let index = -1
+        const conds = {}
+        if (Object.keys(condition).length !== 0) {
+            if (condition._index) {
+                index = parseInt(condition._index)
+                delete condition._index
             }
-            conds["where"] = condition
+
+            conds['where'] = condition
             if (condition.order_by) {
                 conds.order = conds.order_by
                 delete conds.order_by
@@ -156,41 +172,40 @@ class Mysql {
             }
 
             // 条件选择，目前只支持一个属性一个条件
-            for (let key in conds.where) {
-                let val = conds.where[key]
+            for (const [key, val] of Object.entries(conds.where)) {
                 if (val instanceof Array) {
                     switch (val[0]) {
-                        case "<":
+                        case '<':
                             conds.where[key] = {
                                 [Op.lt]: val[1]
                             }
                             break
-                        case ">":
+                        case '>':
                             conds.where[key] = {
                                 [Op.gt]: val[1]
                             }
                             break
-                        case "<=":
+                        case '<=':
                             conds.where[key] = {
                                 [Op.lte]: val[1]
                             }
                             break
-                        case ">=":
+                        case '>=':
                             conds.where[key] = {
                                 [Op.gte]: val[1]
                             }
                             break
-                        case "==":
+                        case '==':
                             conds.where[key] = {
                                 [Op.eq]: val[1]
                             }
                             break
-                        case "!=":
+                        case '!=':
                             conds.where[key] = {
                                 [Op.ne]: val[1]
                             }
                             break
-                        case "in":
+                        case 'in':
                             conds.where[key] = {
                                 [Op.in]: val[1]
                             }
@@ -200,75 +215,83 @@ class Mysql {
             }
         }
         if (options.selCols) {
-            conds["attributes"] = options.selCols
+            conds['attributes'] = options.selCols
         }
         if (options.rawQuery) {
             conds.raw = options.rawQuery
         }
-        return mdlInf.model.findAll(conds).catch(err => getErrContent(err))
-    }
-
-    exec(sql, params, options) {
-        const type = (options && options.type) || Sequelize.QueryTypes.SELECT
-        return this.connect().query(sql, { replacements: params }, type)
-    }
-
-    async save(mdlInf, values, condition, options) {
-        if (!options) { options = {} }
-        if (!options.updMode) { options.updMode = "cover" }
-        options.updMode = options.updMode.toLowerCase()
-
-        if (condition) {
-            let result = await this.select(mdlInf.model, condition, null)
-            return Promise.all(result.map(entity => {
-                for (let key in values) {
-                    let value = values[key]
-                    if (options.updMode === "append") {
-                        let propType = this.models[mdlInf.name].struct[key]
-                        if (propType instanceof String) {
-                            entity[key] += value
-                        } else if (propType instanceof Array) {
-                            // https://github.com/Automattic/mongoose/issues/4455
-                            entity[key] = entity[key].concat([value])
-                        } else if (propType instanceof Number) {
-                            entity[key] += value
-                        } else {
-                            entity[key] = value
-                        }
-                    } else {
-                        entity[key] = value
-                    }
-                }
-                return entity.save().then(result => Promise.resolve(result.toJSON()))
-            })).catch(err => getErrContent(err))
+        if (index !== -1) {
+            return mdlInf.model.findByPk(index)
+                .catch(err => getErrContent(err))
         } else {
-            return mdlInf.model.build(values).save()
-                .then(result => Promise.resolve(result.toJSON()))
+            return mdlInf.model.findAll(conds)
                 .catch(err => getErrContent(err))
         }
     }
 
-    del(mdlInf, condition, _options) {
-        if (condition.id) {
-            condition.id = parseInt(condition.id)
-        }
-        return mdlInf.model.destroy({ where: condition }).catch(err => getErrContent(err))
+    exec (sql, params, options) {
+        const type = (options && options.type) || Sequelize.QueryTypes.SELECT
+        return this.connect().query(sql, { replacements: params }, type)
     }
 
-    genPreRoutes() {
-        for (const [mdlNam, mdlInf] of Object.entries(this.models)) {
-            _.forIn(this._getRefCollection(mdlInf.struct), (colNam, prop) => {
-                colNam = _.upperFirst(colNam)
-                let prePath = []
-                prePath.push(prop)
-                prePath.push(`${mdlNam}/:${mdlNam}_id`)
-                if (!this.models[colNam].options.router.prePath) {
-                    this.models[colNam].options.router.prePath = [prePath]
-                } else {
-                    this.models[colNam].options.router.prePath.push(prePath)
+    async save (mdlInf, values, condition, options) {
+        if (!options) { options = {} }
+        if (!options.updMode) { options.updMode = 'cover' }
+
+        function _saveOne (entity) {
+            for (const [key, value] of Object.entries(values)) {
+                const propType = mdlInf.struct[key]
+                switch (options.updMode.toLowerCase()) {
+                    case 'append':
+                        if (propType instanceof String
+                        || propType instanceof Number) {
+                            entity[key] += value
+                        } else if (propType instanceof Array) {
+                            entity[key] = entity[key].concat([value])
+                        } else {
+                            entity[key] = value
+                        }
+                        break
+                    case 'delete':
+                        if (propType instanceof String) {
+                            entity[key] = ''
+                        } else if (propType instanceof Number) {
+                            entity[key] = 0
+                        } else if (propType instanceof Array) {
+                            entity[key].splice(entity[key].indexOf(value), 1)
+                        } else {
+                            entity[key] = undefined
+                        }
+                        break
+                    case 'cover':
+                    default:
+                        entity[key] = value
                 }
-            })
+            }
+            return entity.save().then(result => result.toJSON())
         }
+
+        if (condition) {
+            const result = await this.select(mdlInf.model, condition, null)
+            if (result instanceof Array) {
+                return result.map(entity => _saveOne(entity))
+                    .catch(err => getErrContent(err))
+            } else {
+                return _saveOne(result).catch(err => getErrContent(err))
+            }
+        } else {
+            return mdlInf.model.build(values).save()
+                .then(result => result.toJSON())
+                .catch(err => getErrContent(err))
+        }
+    }
+
+    del (mdlInf, condition, _options) {
+        if (condition._index) {
+            condition.id = parseInt(condition._index)
+        }
+        return mdlInf.model.destroy({ where: condition })
+            .catch(err => getErrContent(err))
     }
 
     sync(mdlInf) {

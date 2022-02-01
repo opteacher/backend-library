@@ -274,21 +274,6 @@ Mongo.prototype.del = function(mdlInf, condition, options) {
     }).catch(error => { return getErrContent(error) })
 }
 
-Mongo.prototype.genPreRoutes = function() {
-    for (const [mdlNam, mdlInf] of Object.entries(this.models)) {
-        _.forIn(this.getRefCollection(mdlInf.struct), (colNam, prop) => {
-            let prePath = []
-            prePath.push(prop)
-            prePath.push(`${mdlNam}/:${mdlNam}_id`)
-            if (!this.models[colNam].options.router.prePath) {
-                this.models[colNam].options.router.prePath = [prePath]
-            } else {
-                this.models[colNam].options.router.prePath.push(prePath)
-            }
-        })
-    }
-}
-
 Mongo.prototype.sync = function(mdlInf) {
     return this.connect().then(() => new Promise((res, rej) => {
         mdlInf.model.deleteMany({}, err => {

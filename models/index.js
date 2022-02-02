@@ -146,6 +146,14 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                         }
                         const LnkUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}/:parent_idx/${prop}/:child_idx`
                         router.put(LnkUrl, async(ctx) => {
+                            // 对于数组外键，不可重复绑定
+                            if (value instanceof Array) {
+                                const data = await db.select(minfo, { _index: ctx.params.parent_idx })
+                                if (data[prop].includes(ctx.params.child_idx)) {
+                                    ctx.body = { data }
+                                    return
+                                }
+                            }
                             ctx.body = {
                                 data: await db.save(
                                     minfo, {
@@ -159,7 +167,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                             }
                         })
                         mdlRoutes.push({
-                            LnkUrl,
+                            path: LnkUrl,
                             method: 'PUT',
                             params: [],
                         })
@@ -178,11 +186,31 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                             }
                         })
                         mdlRoutes.push({
-                            LnkUrl,
+                            path: LnkUrl,
                             method: 'DELETE',
                             params: [],
                         })
                         console.log(`DELETE\t${LnkUrl}`)
+                        const ClrUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}/:parent_idx/${prop}`
+                        router.delete(ClrUrl, async(ctx) => {
+                            ctx.body = {
+                                data: await db.save(
+                                    minfo, {
+                                        [prop]: value instanceof Array ? [] : '',
+                                    }, {
+                                        _index: ctx.params.parent_idx,
+                                    }, {
+                                        updMode: 'cover'
+                                    }
+                                ),
+                            }
+                        })
+                        mdlRoutes.push({
+                            path: ClrUrl,
+                            method: 'DELETE',
+                            params: [],
+                        })
+                        console.log(`DELETE\t${ClrUrl}`)
                     }
                     continue
             }

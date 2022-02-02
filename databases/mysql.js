@@ -23,6 +23,9 @@ class Mysql {
             Date: Sequelize.DATE,
             Boolean: Sequelize.BOOLEAN,
             Decimal: Sequelize.DECIMAL(64, 20),
+            Array: Sequelize.ARRAY,
+            Object: Sequelize.JSON,
+            ANY: Sequelize.BLOB
         }
         this.Middles = {
             select: '',
@@ -109,14 +112,35 @@ class Mysql {
         setOperate('update')
         setOperate('create')
         setOperate('delete')
-        _.forIn(struct, (prop, name) => {
+        for (const [name, prop] of Object.entries(struct)) {
             if (prop.excludes) {
                 prop.excludes.map(oper => {
                     _.remove(options.operate[oper].columns, n => n === name)
                 })
                 delete prop.excludes
             }
-        })
+            if (prop.type === this.PropTypes.Array) {
+                struct[name].type = this.PropTypes.String
+                struct[name].get = function () {
+                    const strAry = this.getDataValue(name)
+                    return strAry ? strAry.split(',') : []
+                }
+                struct[name].set = function set (value) {
+                    this.setDataValue(name, value.join(','))
+                }
+            } else if (prop === this.PropTypes.Array) {
+                struct[name] = {
+                    type: this.PropTypes.String,
+                    get () {
+                        const strAry = this.getDataValue(name)
+                        return strAry ? strAry.split(',') : []
+                    },
+                    set (value) {
+                        this.setDataValue(name, value.join(','))
+                    }
+                }
+            }
+        }
 
         const self = this
         const middle = { hooks: {} }

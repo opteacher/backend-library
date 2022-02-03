@@ -1,3 +1,4 @@
+import { readFile } from 'fs/promises'
 import _ from 'lodash'
 import mongoose from 'mongoose'
 mongoose.Promise = global.Promise
@@ -283,11 +284,12 @@ Mongo.prototype.sync = function(mdlInf) {
 }
 
 Mongo.prototype.dump = function(mdlInf, flPath) {
-    const data = require(flPath).data
-    return this.connect().then(() => {
-            return Promise.all(data.map(record => (new mdlInf.model(record)).save()))
-        })
-        .then(() => Promise.resolve(data.length))
+    return this.connect()
+        .then(() => readFile(new URL(flPath, import.meta.url)))
+        .then((json) => Promise.all(JSON.parse(json).data.map(record => {
+            return (new mdlInf.model(record)).save()
+        })))
+        .then((data) => Promise.resolve(data.length))
         .catch(error => getErrContent(error))
 }
 

@@ -23,15 +23,15 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
     // @step{}:同步数据库
     const syncFunc = async() => {
         if (cfg.sync && Array.isArray(cfg.sync)) {
-            await Promise.all(cfg.sync.map((tname) => db.sync(models.find(model => model.name === tname).model)))
+            await Promise.all(cfg.sync.map((tname) => db.sync(models.find(model => model.name === tname))))
             console.log('数据库模型同步完毕')
         } else if (cfg.sync) {
             await Promise.all(_.values(models).map((minfo) => db.sync(minfo)))
             console.log('数据库模型同步完毕')
         }
         if (cfg.inits) {
-            for (const [mname, initFile] of cfg.inits) {
-                const numIpt = await db.dump(models.find(model => model.name === mname).model, Path.resolve(initFile))
+            for (const [mname, initFile] of Object.entries(cfg.inits)) {
+                const numIpt = await db.dump(models.find(model => model.name === mname), Path.resolve(initFile))
                 console.log(
                     `从${initFile}文件内读取并导入了${numIpt}条记录到表${mname}中`
                 )

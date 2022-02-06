@@ -16,8 +16,9 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
 
     // @steps{1}:引进所有模型
     const models = []
+    const pathPfx = process.platform === 'win32' ? 'file://' : ''
     for (const mfile of utils.scanPath(mdlsPath, { ignores: ['index.js'] })) {
-        models.push((await import(Path.resolve(mdlsPath, mfile))).default)
+        models.push((await import(pathPfx + Path.resolve(mdlsPath, mfile))).default)
     }
 
     // @step{}:同步数据库

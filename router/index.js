@@ -9,7 +9,8 @@ export async function genApiRoutes(routePath, ignores = []) {
     for (const file of scanPath(routePath, { ignores: ['.DS_Store'].concat(ignores) })) {
         const pthStat = path.parse(file)
         const preRoutePath = `/${pthStat.dir.replace(/\\/g, '/')}`
-        const refIdx = (await import (path.resolve(routePath, file))).default
+        const pathPfx = process.platform === 'win32' ? 'file://' : ''
+        const refIdx = (await import(pathPfx + path.resolve(routePath, file))).default
         const content = fs.readFileSync(path.resolve(routePath, file), 'utf8')
         for (let i = content.indexOf('router.'); i !== -1; i = content.indexOf('router.', i)) {
             i += 'router.'.length

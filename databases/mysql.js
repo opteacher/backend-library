@@ -20,7 +20,7 @@ class Mysql {
             Id: Sequelize.UUID,
             String: Sequelize.STRING,
             Number: Sequelize.INTEGER,
-            Date: Sequelize.DATE,
+            DateTime: Sequelize.DATE,
             Boolean: Sequelize.BOOLEAN,
             Decimal: Sequelize.DECIMAL(64, 20),
             Array: Sequelize.ARRAY,

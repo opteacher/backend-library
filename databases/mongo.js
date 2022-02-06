@@ -21,7 +21,7 @@ function Mongo(config) {
             Id: mongoose.Schema.Types.ObjectId,
             String: String,
             Number: Number,
-            Date: Date,
+            DateTime: Date,
             Boolean: Boolean,
             Array: Array,
             Object: Map,

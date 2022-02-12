@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import _ from 'lodash'
 import Router from 'koa-router'
 import Path from 'path'

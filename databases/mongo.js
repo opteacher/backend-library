@@ -240,7 +240,7 @@ Mongo.prototype.save = function(mdlInf, values, condition, options) {
                     obj.set(k, v)
             }
         })
-        return obj.save()
+        return obj.save().then(res => res.toObject())
     }
 
     return this.connect().then(() => {

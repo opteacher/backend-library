@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises'
 import _ from 'lodash'
 import mongoose from 'mongoose'
 mongoose.Promise = global.Promise
-import { getErrContent, rmvEndsOf } from '../utils/index.js'
+import { getErrContent } from '../utils/index.js'
 
 // @block{Mongo}:mongodb的实例类
 // @role:数据库操作类
@@ -295,6 +295,20 @@ Mongo.prototype.dump = function(mdlInf, flPath) {
 
 Mongo.prototype.count = function (mdlInf) {
     return this.connect().then(() => mdlInf.model.count())
+}
+
+Mongo.prototype.max = function (mdlInf, prop, group = {}) {
+    return this.connect()
+        .then((_resolve, reject) => mdlInf.model.aggregate()
+            .group(Object.assign(group, { max: { $max: `$${prop}` } }))
+            .select('max')
+            .exec((res, err) => {
+                if (!err) {
+                    return reject(err)
+                }
+                return res.max
+            })
+        ).catch(error => getErrContent(error))
 }
 
 export default Mongo

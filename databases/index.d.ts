@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Sequelize from 'sequelize'
 import * as mongoose from 'mongoose'
 
@@ -31,9 +32,7 @@ interface SaveOptions extends IndexStruct {
   updMode?: UpdMode;
 }
 
-interface DeleteOptions extends IndexStruct {
-
-}
+type DeleteOptions = IndexStruct
 
 interface IndexStruct {
   [prop: string]: any;
@@ -67,6 +66,7 @@ declare class DataBase {
   del (mdlInf: MdlInf, condition?: any, options?: DeleteOptions): Promise<number>;
   sync (mdlInf: MdlInf): Promise<void>;
   count (mdlInf: MdlInf): Promise<number>;
+  max (mdlInf: MdlInf, prop: string, group?: Record<string, any>): Promise<number>;
   dump (mdlInf: MdlInf, flPath: string): Promise<number>;
 }
 
@@ -74,8 +74,7 @@ interface OperOptions {
   operType?: string;
 }
 
-interface GetOptions extends OperOptions{
-}
+type GetOptions = OperOptions
 
 interface SetOptions extends OperOptions {
   expSeconds?: number;

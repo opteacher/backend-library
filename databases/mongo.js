@@ -297,18 +297,11 @@ Mongo.prototype.count = function (mdlInf) {
     return this.connect().then(() => mdlInf.model.count())
 }
 
-Mongo.prototype.max = function (mdlInf, prop, group = {}) {
+Mongo.prototype.max = function (mdlInf, prop, condition = null) {
     return this.connect()
-        .then((_resolve, reject) => mdlInf.model.aggregate()
-            .group(Object.assign(group, { max: { $max: `$${prop}` } }))
-            .select('max')
-            .exec((res, err) => {
-                if (!err) {
-                    return reject(err)
-                }
-                return res.max
-            })
-        ).catch(error => getErrContent(error))
+        .then(() => mdlInf.model.findOne(condition, prop, { sort: { [prop]: 1 } }))
+        .then(res => res && res[prop] ? res[prop] : 0)
+        .catch(error => getErrContent(error))
 }
 
 export default Mongo

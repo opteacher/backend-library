@@ -260,7 +260,7 @@ Mongo.prototype.save = function(mdlInf, values, condition, options) {
             res = (new mdlInf.model(values)).save()
         }
         return res && res.length ? Promise.all(res) : res
-    }).catch(error => { return getErrContent(error) })
+    }).catch(error => getErrContent(error))
 }
 
 Mongo.prototype.del = function(mdlInf, condition, options) {

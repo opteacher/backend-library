@@ -59,6 +59,7 @@ interface TypeMapper {
 declare class DataBase {
   get PropTypes (): TypeMapper;
   connect (): Promise<Conn>;
+  disconnect (): Promise<void>;
   useDataBase (dbName: string): Promise<boolean>;
   defineModel (struct: NamedStruct, options?: DefineOptions): MdlInf;
   select (mdlInf: MdlInf, condition?: any, options?: SelectOptions): Promise<any>;

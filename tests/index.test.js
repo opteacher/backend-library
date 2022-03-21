@@ -1,15 +1,18 @@
+import 'core-js/stable'
+import 'regenerator-runtime/runtime'
 import Path from 'path'
-import assert from 'assert'
+import { beforeAll, afterAll, expect } from '@jest/globals'
 import { getDbByName } from '../databases/index.js'
 
-const log = console.log
 const dbCfgPath = Path.resolve('tests', 'configs', 'db')
 
 describe('# 数据库', function () {
   describe('# MongoDB', function () {
+    
     let db = null
     let User = null
-    before(async function () {
+    let user = null
+    beforeAll(() => (async function () {
       db = await getDbByName('mongo', dbCfgPath)
       User = db.defineModel({
         __modelName: 'user',
@@ -26,82 +29,110 @@ describe('# 数据库', function () {
           methods: ['POST', 'DELETE', 'PUT', 'GET', 'ALL']
         }
       })
-      db.sync(User)
-    })
+      await db.sync(User)
 
-    it('# 增db.save()，数据库中应增加一条新纪录', async function () {
+      user = await db.save(User, {
+        username: 'test',
+        password: 'abcd'
+      })
+      console.log(`新增一条用于修改的记录：${user.id}`)
+    })())
+
+    test('# 增db.save()，数据库中应增加一条新纪录', async function () {
       const user = await db.save(User, {
         username: 'abcd',
         password: 'frfrfr',
         age: 12
       })
-      log(`\t新增的用户id为：${user.id}`)
-      assert.notEqual(user.id, '')
+      console.log(`新增的用户id为：${user.id}`)
+      expect(user.id).not.toBe('')
     })
 
-    it('# 删db.del()，上一步新增的记录将无法从数据库查询到', async function () {
+    test('# 删db.del()，上一步新增的记录将无法从数据库查询到', async function () {
       let result = await db.select(User, { username: 'abcd' })
-      log(`\t现存查询到的数据量为：${result.length}`)
-      assert.ok(result.length >= 1)
+      console.log(`现存查询到的数据量为：${result.length}`)
+      expect(result.length).toBeGreaterThanOrEqual(1)
       const num = await db.del(User, { username: 'abcd' })
-      log(`\t删除的记录数为：${num}`)
-      assert.notEqual(num, 0)
+      console.log(`删除的记录数为：${num}`)
+      expect(num).not.toBe(0)
       result = await db.select(User, { username: 'abcd' })
-      log('\t删除之后的记录数为：0')
-      assert.equal(result.length, 0)
+      console.log('删除之后的记录数为：0')
+      expect(result).toHaveLength(0)
     })
 
-    let user = null
-    before(async function () {
-      user = await db.save(User, {
-        username: 'test',
-        password: 'abcd'
-      })
-      log(`\t新增一条用于修改的记录：${user.id}`)
-    })
-
-    it('# 改db.save()，修改基本类型字段（字符串）', async function () {
+    test('# 改db.save()，修改基本类型字段（字符串）', async function () {
       await db.saveOne(User, user.id, { password: 'iiii' })
       user = await db.select(User, { _index: user.id })
-      log(`\t修改用户密码为${user.password}`)
+      console.log(`修改用户密码为${user.password}`)
+      expect(user.password).toBe('iiii')
     })
 
-    it('# 改db.save()，修改基本类型字段（数字）', async function () {
+    test('# 改db.save()，修改基本类型字段（数字）', async function () {
       await db.saveOne(User, user.id, { age: 23 })
       user = await db.select(User, { _index: user.id })
-      log(`\t修改用户密码为${user.age}`)
+      console.log(`修改用户密码为${user.age}`)
+      expect(user.age).toBe(23)
     })
 
-    it('# 改db.save()，修改数组类型字段（元素）', async function () {
+    test('# 改db.save()，修改数组类型字段（元素）', async function () {
       await db.saveOne(User, user.id, { tags: 12 })
       user = await db.select(User, { _index: user.id })
-      log(`\t修改用户标签为${user.tags}`)
+      console.log(`修改用户标签为${user.tags}`)
+      expect(user.tags).toContain(12)
     })
 
-    it('# 改db.save()，修改数组类型字段（数组）', async function () {
+    test('# 改db.save()，修改数组类型字段（数组）', async function () {
       await db.saveOne(User, user.id, { tags: ['hhhh', '7777'] })
       user = await db.select(User, { _index: user.id })
-      log(`\t修改用户标签为${user.tags}`)
+      console.log(`修改用户标签为${user.tags}`)
+      expect(user.tags).not.toContain(12)
+      expect(user.tags).toContain('hhhh')
+      expect(user.tags).toContain('7777')
     })
 
-    it('# 改db.save()，追加数组类型字段（元素）', async function () {
+    test('# 改db.save()，追加数组类型字段（元素）', async function () {
       await db.saveOne(User, user.id, { tags: 100 }, { updMode: 'append' })
       user = await db.select(User, { _index: user.id })
-      log(`\t追加用户标签为${user.tags}`)
+      console.log(`追加用户标签为${user.tags}`)
+      expect(user.tags).toContain('hhhh')
+      expect(user.tags).toContain('7777')
+      expect(user.tags).toContain(100)
     })
 
-    it('# 改db.save()，追加数组类型字段（数组）', async function () {
+    test('# 改db.save()，追加数组类型字段（数组）', async function () {
       await db.saveOne(User, user.id, { tags: ['3333', true] }, { updMode: 'append' })
       user = await db.select(User, { _index: user.id })
-      log(`\t追加用户标签为${user.tags}`)
+      console.log(`追加用户标签为${user.tags}`)
+      expect(user.tags).toContain('hhhh')
+      expect(user.tags).toContain('7777')
+      expect(user.tags).toContain(100)
+      expect(user.tags).toContain('3333')
+      expect(user.tags).toContain(true)
     })
 
-    it('# 改db.save()，删除数组类型字段的元素', async function () {
+    test('# 改db.save()，删除数组类型字段的元素', async function () {
       await db.saveOne(User, user.id, { tags: 'hhhh' }, { updMode: 'delete' })
       user = await db.select(User, { _index: user.id })
-      log(`\t删除标签：hhhh；用户标签为${user.tags}`)
+      console.log(`删除标签：hhhh；用户标签为${user.tags}`)
+      expect(user.tags).not.toContain('hhhh')
     })
 
-    after(() => db.disconnect())
+    test('# 查db.select()，指定id', async function () {
+      const selUsr = await db.select(User, { _index: user.id })
+      expect(selUsr.username).toBe(user.username)
+    })
+
+    test('# 查db.select()，全查', async function () {
+      const result = await db.select(User)
+      expect(result.length).toBeGreaterThanOrEqual(1)
+    })
+
+    test('# 同步db.sync()，清空表', async function () {
+      await db.sync(User)
+      const result = await db.select(User)
+      expect(result).toHaveLength(0)
+    })
+
+    afterAll(() => db.disconnect())
   })
 })

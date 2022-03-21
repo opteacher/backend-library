@@ -340,16 +340,16 @@ export default class Mongo {
 	}
 
 	async dump(mdlInf, flPath) {
-		try {
-			await this.connect();
-			const json = await readFile(new URL(flPath, import.meta.url));
-			const data = await Promise.all(
-				JSON.parse(json).data.map((record) => new mdlInf.model(record).save())
-			);
-			return data.length;
-		} catch (error) {
-			return getErrContent(error);
-		}
+		// try {
+		// 	await this.connect();
+		// 	const json = await readFile(new URL(flPath, import.meta.url));
+		// 	const data = await Promise.all(
+		// 		JSON.parse(json).data.map((record) => new mdlInf.model(record).save())
+		// 	);
+		// 	return data.length;
+		// } catch (error) {
+		// 	return getErrContent(error);
+		// }
 	}
 
 	count(mdlInf) {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import Path from "path";
-import { fileURLToPath } from "url";
+// import Path from "path";
+// import { fileURLToPath } from "url";
 import { readConfig, scanPath, rmvEndsOf } from "../utils/index.js";
 
 export async function getDbByName(name, cfgPath) {
@@ -10,9 +10,10 @@ export async function getDbByName(name, cfgPath) {
 }
 
 export function getAvaDbs() {
-	return scanPath(Path.dirname(fileURLToPath(import.meta.url)), {
-		ignores: ["index.js"],
-	}).map((dbFile) => rmvEndsOf(dbFile, ".js"));
+	// return scanPath(Path.dirname(fileURLToPath(import.meta.url)), {
+	// 	ignores: ["index.js"],
+	// }).map((dbFile) => rmvEndsOf(dbFile, ".js"));
+	return [];
 }
 
 export function fmtQuerySQL(sql, query, symbol, options) {

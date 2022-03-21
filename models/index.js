@@ -101,9 +101,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                 case 'put':
                     // @steps{3_3_2_4}:*PUT*：同POST
                     router.put(PutUrl, async(ctx) => {
-                        const data = await db.save(minfo, ctx.request.body, {
-                            _index: ctx.params.index,
-                        })
+                        const data = await db.saveOne(minfo, ctx.params.index, ctx.request.body)
                         if (typeof data === 'string') {
                             ctx.body = {
                                 error: data
@@ -125,7 +123,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                     router.delete(DelUrl, async(ctx) => {
                         ctx.body = {
                             data: await db.del(minfo, {
-                                _index: ctx.params.index,
+                                _index: ctx.params.index
                             }),
                         }
                     })
@@ -157,15 +155,12 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                                 }
                             }
                             ctx.body = {
-                                data: await db.save(
-                                    minfo, {
-                                        [prop]: ctx.params.child_idx,
-                                    }, {
-                                        _index: ctx.params.parent_idx,
-                                    }, {
-                                        updMode: 'append'
-                                    }
-                                ),
+                                data: await db.saveOne(
+                                    minfo,
+                                    ctx.params.parent_idx,
+                                    { [prop]: ctx.params.child_idx },
+                                    { updMode: 'append' }
+                                )
                             }
                         })
                         mdlRoutes.push({
@@ -176,14 +171,11 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                         console.log(`PUT\t${LnkUrl}`)
                         router.delete(LnkUrl, async(ctx) => {
                             ctx.body = {
-                                data: await db.save(
-                                    minfo, {
-                                        [prop]: ctx.params.child_idx,
-                                    }, {
-                                        _index: ctx.params.parent_idx,
-                                    }, {
-                                        updMode: 'delete'
-                                    }
+                                data: await db.saveOne(
+                                    minfo,
+                                    ctx.params.parent_idx,
+                                    { [prop]: ctx.params.child_idx, },
+                                    { updMode: 'delete' }
                                 ),
                             }
                         })
@@ -197,13 +189,10 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
                         router.delete(ClrUrl, async(ctx) => {
                             ctx.body = {
                                 data: await db.save(
-                                    minfo, {
-                                        [prop]: value instanceof Array ? [] : '',
-                                    }, {
-                                        _index: ctx.params.parent_idx,
-                                    }, {
-                                        updMode: 'cover'
-                                    }
+                                    minfo,
+                                    ctx.params.parent_idx,
+                                    { [prop]: value instanceof Array ? [] : '' },
+                                    { updMode: 'cover' }
                                 ),
                             }
                         })

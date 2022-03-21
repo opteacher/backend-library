@@ -63,6 +63,7 @@ declare class DataBase {
   defineModel (struct: NamedStruct, options?: DefineOptions): MdlInf;
   select (mdlInf: MdlInf, condition?: any, options?: SelectOptions): Promise<any>;
   save (mdlInf: MdlInf, values: any, condition?: any, options?: SaveOptions): Promise<any>;
+  saveOne (mdlInf: MdlInf, id: any, values: any, options?: SaveOptions): Promise<any>;
   del (mdlInf: MdlInf, condition?: any, options?: DeleteOptions): Promise<number>;
   sync (mdlInf: MdlInf): Promise<void>;
   count (mdlInf: MdlInf): Promise<number>;

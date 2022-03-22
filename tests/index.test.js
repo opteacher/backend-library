@@ -8,7 +8,7 @@ const dbCfgPath = Path.resolve('tests', 'configs', 'db')
 
 describe('# 数据库', function () {
   describe('# MongoDB', function () {
-    
+
     let db = null
     let User = null
     let user = null
@@ -31,11 +31,11 @@ describe('# 数据库', function () {
       })
       await db.sync(User)
 
+      // 新增一条用于修改的记录
       user = await db.save(User, {
         username: 'test',
         password: 'abcd'
       })
-      console.log(`新增一条用于修改的记录：${user.id}`)
     })())
 
     test('# 增db.save()，数据库中应增加一条新纪录', async function () {
@@ -44,47 +44,47 @@ describe('# 数据库', function () {
         password: 'frfrfr',
         age: 12
       })
-      console.log(`新增的用户id为：${user.id}`)
+      // 新增的用户id不为空
       expect(user.id).not.toBe('')
     })
 
     test('# 删db.del()，上一步新增的记录将无法从数据库查询到', async function () {
       let result = await db.select(User, { username: 'abcd' })
-      console.log(`现存查询到的数据量为：${result.length}`)
+      // 现存有数据
       expect(result.length).toBeGreaterThanOrEqual(1)
       const num = await db.del(User, { username: 'abcd' })
-      console.log(`删除的记录数为：${num}`)
+      // 有删除的记录
       expect(num).not.toBe(0)
       result = await db.select(User, { username: 'abcd' })
-      console.log('删除之后的记录数为：0')
+      // 删除之后的记录数为0
       expect(result).toHaveLength(0)
     })
 
     test('# 改db.save()，修改基本类型字段（字符串）', async function () {
       await db.saveOne(User, user.id, { password: 'iiii' })
       user = await db.select(User, { _index: user.id })
-      console.log(`修改用户密码为${user.password}`)
+      // 修改之后记录数据刷新
       expect(user.password).toBe('iiii')
     })
 
     test('# 改db.save()，修改基本类型字段（数字）', async function () {
       await db.saveOne(User, user.id, { age: 23 })
       user = await db.select(User, { _index: user.id })
-      console.log(`修改用户密码为${user.age}`)
+      // 修改之后记录数据刷新
       expect(user.age).toBe(23)
     })
 
     test('# 改db.save()，修改数组类型字段（元素）', async function () {
       await db.saveOne(User, user.id, { tags: 12 })
       user = await db.select(User, { _index: user.id })
-      console.log(`修改用户标签为${user.tags}`)
+      // 修改之后记录数据刷新
       expect(user.tags).toContain(12)
     })
 
     test('# 改db.save()，修改数组类型字段（数组）', async function () {
       await db.saveOne(User, user.id, { tags: ['hhhh', '7777'] })
       user = await db.select(User, { _index: user.id })
-      console.log(`修改用户标签为${user.tags}`)
+      // 修改之后记录数据刷新
       expect(user.tags).not.toContain(12)
       expect(user.tags).toContain('hhhh')
       expect(user.tags).toContain('7777')
@@ -93,7 +93,7 @@ describe('# 数据库', function () {
     test('# 改db.save()，追加数组类型字段（元素）', async function () {
       await db.saveOne(User, user.id, { tags: 100 }, { updMode: 'append' })
       user = await db.select(User, { _index: user.id })
-      console.log(`追加用户标签为${user.tags}`)
+      // 追加之后记录数据刷新
       expect(user.tags).toContain('hhhh')
       expect(user.tags).toContain('7777')
       expect(user.tags).toContain(100)
@@ -102,7 +102,7 @@ describe('# 数据库', function () {
     test('# 改db.save()，追加数组类型字段（数组）', async function () {
       await db.saveOne(User, user.id, { tags: ['3333', true] }, { updMode: 'append' })
       user = await db.select(User, { _index: user.id })
-      console.log(`追加用户标签为${user.tags}`)
+      // 修改之后记录数据刷新
       expect(user.tags).toContain('hhhh')
       expect(user.tags).toContain('7777')
       expect(user.tags).toContain(100)
@@ -113,7 +113,7 @@ describe('# 数据库', function () {
     test('# 改db.save()，删除数组类型字段的元素', async function () {
       await db.saveOne(User, user.id, { tags: 'hhhh' }, { updMode: 'delete' })
       user = await db.select(User, { _index: user.id })
-      console.log(`删除标签：hhhh；用户标签为${user.tags}`)
+      // 删除之后记录数据刷新
       expect(user.tags).not.toContain('hhhh')
     })
 

@@ -199,7 +199,7 @@ export default class Mongo {
 			}
 			let offset = null;
 			if (condition.offset) {
-				offset = condition.offset - 1;
+				offset = condition.offset;
 				delete condition.offset;
 			}
 			let limit = null;

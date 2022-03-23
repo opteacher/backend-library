@@ -154,7 +154,7 @@ describe('# 数据库', () => {
     describe('# 导入功能', () => {
       beforeAll(() => db.sync(User))
 
-      test('# 导入六条记录', async () => {
+      test('# 导入db.dump()，六条记录', async () => {
         await db.dump(User, Path.join(tstDatPath, 'records.json'))
         expect(await db.select(User)).toHaveLength(6)
       })

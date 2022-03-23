@@ -19,3 +19,5 @@ export declare function fixEndsWith (text: string, suffix: string): string;
 export declare function rmvStartsOf (text: string, prefix: string): string;
 
 export declare function rmvEndsOf (text: string, suffix: string): string;
+
+export declare function pickProp(obj: object, prop: string): any;

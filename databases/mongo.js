@@ -1,6 +1,5 @@
 'use strict'
 import { readFile } from 'fs/promises'
-import _ from 'lodash'
 import mongoose from 'mongoose'
 mongoose.Promise = global.Promise
 import { pickProp, getErrContent } from '../utils/index.js'
@@ -123,7 +122,10 @@ export default class Mongo {
     for (const [name, prop] of Object.entries(struct)) {
       if (prop.excludes) {
         prop.excludes.map((oper) => {
-          _.remove(options.operate[oper].columns, (n) => n === name)
+          options.operate[oper].columns.splice(
+            options.operate[oper].columns.indexOf(name),
+            1
+          )
         })
         delete prop.excludes
       }

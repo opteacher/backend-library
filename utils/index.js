@@ -198,11 +198,16 @@ export function pickProp(obj, prop) {
   if (!prop) {
     return obj
   }
+  if (prop !== '' && prop.indexOf('.') === -1 && (prop in obj)) {
+    prop += '.'
+  }
   for (const p of prop.split('.')) {
-    if (p.endsWith(']')) {
+    if (p === '') {
+      continue
+    } else if (p.endsWith(']')) {
       if (p.endsWith('}]')) {
         const result = /^(\w+)\[\{(\w+):(\"?\w+\"?)\}\]$/.exec(p)
-        if (result.length < 4) {
+        if (!result || result.length < 4) {
           throw new Error()
         }
         const sub = result[1]
@@ -210,8 +215,8 @@ export function pickProp(obj, prop) {
         const val = result[3]
         obj = obj[sub].find((itm) => itm[key] === val)
       } else {
-        const result = /^(\w+)\[\d+\]$/.exec(p)
-        if (result.length < 3) {
+        const result = /^(\w+)\[(\d+)\]$/.exec(p)
+        if (!result || result.length < 3) {
           throw new Error()
         }
         const sub = result[1]

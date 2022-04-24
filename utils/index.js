@@ -126,25 +126,6 @@ export function copyDir(src, dest, options) {
   })
 }
 
-export function delDir(path) {
-  if (fs.existsSync(path)) {
-    if (fs.statSync(path).isDirectory()) {
-      let files = fs.readdirSync(path)
-      files.forEach((file, index) => {
-        let currentPath = path + '/' + file
-        if (fs.statSync(currentPath).isDirectory()) {
-          delDir(currentPath)
-        } else {
-          fs.unlinkSync(currentPath)
-        }
-      })
-      fs.rmdirSync(path)
-    } else {
-      fs.unlinkSync(path)
-    }
-  }
-}
-
 export function readConfig(cfgFile, withEnv = false) {
   const env = withEnv && process.env.NODE_ENV ? `.${process.env.NODE_ENV}` : ''
   return toml.parse(

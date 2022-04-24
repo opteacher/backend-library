@@ -6,8 +6,6 @@ export declare function copyDir (src: string, dest: string, options?: {
   ignores?: string[]
 }): void;
 
-export declare function delDir (path: string): void;
-
 export declare function readConfig (cfgFile: string, withEnv?: boolean): any;
 
 export declare function getErrContent (err: any): string;

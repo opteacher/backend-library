@@ -119,17 +119,6 @@ export default class Mongo {
     setOperate('update')
     setOperate('create')
     setOperate('delete')
-    for (const [name, prop] of Object.entries(struct)) {
-      if (prop.excludes) {
-        prop.excludes.map((oper) => {
-          options.operate[oper].columns.splice(
-            options.operate[oper].columns.indexOf(name),
-            1
-          )
-        })
-        delete prop.excludes
-      }
-    }
 
     let self = this
     let schema = mongoose.Schema(struct)
@@ -179,8 +168,13 @@ export default class Mongo {
     try {
       await this.connect()
 
+      let selCols = mdlInf.options.operate.select.columns.join(' ')
+      if (options.selCols) {
+        selCols = options.selCols.join(' ')
+      }
+
       if (condition._index) {
-        let res = mdlInf.model.findById(condition._index)
+        let res = mdlInf.model.findById(condition._index, selCols)
         if (options.ext) {
           for (const [prop] of Object.entries(
             Mongo.getRefCollection(mdlInf.struct)
@@ -195,9 +189,6 @@ export default class Mongo {
       if (condition.order_by) {
         order_by = condition.order_by
         delete condition.order_by
-        if (typeof order_by === 'string') {
-          order_by = JSON.parse(order_by)
-        }
       }
       let offset = null
       if (condition.offset) {
@@ -208,10 +199,6 @@ export default class Mongo {
       if (condition.limit) {
         limit = condition.limit
         delete condition.limit
-      }
-      let selCols = mdlInf.options.operate.select.columns.join(' ')
-      if (options.selCols) {
-        selCols = options.selCols.join(' ')
       }
       let res = mdlInf.model.find(condition, selCols)
       if (order_by) {
@@ -248,7 +235,7 @@ export default class Mongo {
       await this.connect()
       const obj = await mdlInf.model.findById(id)
       for (const [k, v] of Object.entries(values)) {
-        let propType = pickProp(mdlInf.struct, k)
+        const propType = pickProp(mdlInf.struct, k)
         switch (options.updMode.toLowerCase()) {
           case 'append':
             if (propType instanceof String || propType.name === 'Number') {
@@ -299,9 +286,10 @@ export default class Mongo {
         if (condition._index) {
           return this.saveOne(mdlInf, condition._index, values, options)
         } else {
-          return (await mdlInf.model.find(condition)).map((res) => {
-            return this.saveOne(mdlInf, res._id, values, options)
-          })
+          const result = await mdlInf.model.find(condition)
+          return result.map((res) =>
+            this.saveOne(mdlInf, res._id, values, options)
+          )
         }
       } else {
         return new mdlInf.model(values).save()
@@ -311,7 +299,7 @@ export default class Mongo {
     }
   }
 
-  async del(mdlInf, condition, options) {
+  async remove(mdlInf, condition, options) {
     if (!options) {
       options = {}
     }

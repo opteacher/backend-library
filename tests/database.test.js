@@ -29,11 +29,31 @@ describe('# 数据库', () => {
           subItem: {
             name: db.PropTypes.String,
             thing: db.PropTypes.Any,
+            num: db.PropTypes.Number,
           },
         },
         {
           router: {
             methods: ['POST', 'DELETE', 'PUT', 'GET', 'ALL'],
+          },
+          middle: {
+            unknown: () => {
+              console.log('测试未知中间件')
+            },
+            create: {
+              unknown: () => {
+                console.log('测试未知过程')
+              },
+              before: () => {
+                console.log('create_before')
+              },
+              doing: () => {
+                console.log('create_doing')
+              },
+              after: () => {
+                console.log('create_after')
+              },
+            },
           },
         }
       )
@@ -56,11 +76,11 @@ describe('# 数据库', () => {
         _index = (await db.save(User, record)).id
       })
 
-      test('# 删db.del()，按字段', async () => {
+      test('# 删db.remove()，按字段', async () => {
         let result = await db.select(User, { username })
         // 现存有数据
         expect(result.length).toBeGreaterThanOrEqual(1)
-        const num = await db.del(User, { username })
+        const num = await db.remove(User, { username })
         // 有删除的记录
         expect(num).not.toBe(0)
         result = await db.select(User, { username })
@@ -68,11 +88,11 @@ describe('# 数据库', () => {
         expect(result).toHaveLength(0)
       })
 
-      test('# 删db.del()，按ID', async () => {
+      test('# 删db.remove()，按ID', async () => {
         let result = await db.select(User, { _index })
         // 现存有数据
         expect(result).toBeDefined()
-        const num = await db.del(User, { _index })
+        const num = await db.remove(User, { _index })
         // 有删除的记录
         expect(num).not.toBe(0)
         result = await db.select(User, { _index })
@@ -85,6 +105,7 @@ describe('# 数据库', () => {
       let user = null
       beforeAll(async () => {
         await db.sync(User)
+        await db.dump(User, Path.join(tstDatPath, 'records.json'))
         user = await db.save(User, record)
       })
 
@@ -93,6 +114,13 @@ describe('# 数据库', () => {
         user = await db.select(User, { _index: user.id })
         // 修改之后记录数据刷新
         expect(user.password).toBe('iiii')
+      })
+
+      test('# 改db.save()，修改基本类型字段，用save函数', async () => {
+        await db.save(User, { password: 'yyyy' }, { _index: user.id })
+        user = await db.select(User, { _index: user.id })
+        // 修改之后记录数据刷新
+        expect(user.password).toBe('yyyy')
       })
 
       test('# 改db.save()，修改基本类型字段（数字）', async () => {
@@ -149,6 +177,26 @@ describe('# 数据库', () => {
         // 删除之后记录数据刷新
         expect(user.tags).not.toContain('hhhh')
       })
+
+      test('# 改db.save()，修改子字段（字符串）', async () => {
+        await db.saveOne(User, user.id, { 'subItem.name': 'aaaa' })
+        user = await db.select(User, { _index: user.id })
+        // 修改之后记录数据刷新
+        expect(user.subItem.name).toEqual('aaaa')
+      })
+
+      test('# 改db.save()，修改子字段（数字）', async () => {
+        await db.saveOne(User, user.id, { 'subItem.num': 12 })
+        user = await db.select(User, { _index: user.id })
+        // 修改之后记录数据刷新
+        expect(user.subItem.num).toEqual(12)
+      })
+
+      test('# 改db.save()，修改多记录', async () => {
+        (await db.save(User, { age: 50 }, { password: 'frfrfr' })).map(usr => {
+          expect(usr).toHaveProperty('age', 50)
+        })
+      })
     })
 
     describe('# 导入功能', () => {
@@ -162,6 +210,7 @@ describe('# 数据库', () => {
 
     describe('# 查询记录', () => {
       let user = null
+
       beforeAll(async () => {
         await db.sync(User)
         await db.dump(User, Path.join(tstDatPath, 'records.json'))
@@ -169,20 +218,29 @@ describe('# 数据库', () => {
       })
 
       test('# 查db.select()，指定id', async () => {
-        expect((await db.select(User, { _index: user.id })).username).toBe(
-          user.username
-        )
+        expect(await db.select(User, { _index: user.id })).toHaveProperty('username', user.username)
       })
+
+      // test('# 查db.select()，错误id', async () => {
+      //   expect(await db.select(User, { _index: 'ansdasd' })).toThrow()
+      // })
 
       test('# 查db.select()，全查', async () => {
         expect((await db.select(User)).length).toBeGreaterThanOrEqual(1)
       })
 
       test('# 查db.select()，排序', async () => {
-        (await db.select(User, { order_by: { age: -1 } })).reduce((prev, curr) => {
-          expect(prev.age).toBeGreaterThanOrEqual(curr.age)
-          return curr
-        })
+        (await db.select(User, { order_by: { age: -1 } })).reduce(
+          (prev, curr) => {
+            expect(prev.age).toBeGreaterThanOrEqual(curr.age)
+            return curr
+          }
+        )
+      })
+
+      test('# 查db.select()，指定列', async () => {
+        user = await db.select(User, { _index: user.id }, { selCols: ['age'] })
+        expect(() => user).not.toHaveProperty('username')
       })
 
       test('# 查db.select()，偏移量', async () => {

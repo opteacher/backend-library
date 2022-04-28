@@ -175,11 +175,11 @@ export function getErrContent(err) {
 // * prop.sub: 访问子字段的字段
 // * prop.sub[2]: 访问数组字段指定索引的元素
 // * prop.sub[{a:2}]: 访问数组字段指定字段的元素
-export function pickProp(obj, prop) {
+export function getProp(obj, prop) {
   if (!prop) {
     return obj
   }
-  if (prop !== '' && prop.indexOf('.') === -1 && (prop in obj)) {
+  if (prop.indexOf('.') === -1 && (prop in obj)) {
     prop += '.'
   }
   for (const p of prop.split('.')) {
@@ -209,4 +209,58 @@ export function pickProp(obj, prop) {
     }
   }
   return obj
+}
+
+export function setProp(obj, prop, value) {
+  if (!prop) {
+    return obj
+  }
+  if (prop.indexOf('.') === -1 && (prop in obj)) {
+    prop = '.' + prop
+  }
+  const ret = obj
+  const props = prop.split('.')
+  const lstIdx = props.length - 1
+  for (let i = 0; i < props.length; ++i) {
+    const p = props[i]
+    if (p === '') {
+      continue
+    } else if (p.endsWith(']')) {
+      if (p.endsWith('}]')) {
+        const result = /^(\w+)\[\{(\w+):(\"?\w+\"?)\}\]$/.exec(p)
+        if (!result || result.length < 4) {
+          throw new Error()
+        }
+        const sub = result[1]
+        const key = result[2]
+        const val = result[3]
+        const idx = obj[sub].findIndex((itm) => itm[key] === val)
+        if (idx === -1) {
+          throw new Error()
+        }
+        if (i === lstIdx) {
+          obj[sub][idx] = value
+        } else {
+          obj = obj[sub][idx]
+        }
+      } else {
+        const result = /^(\w+)\[(\d+)\]$/.exec(p)
+        if (!result || result.length < 3) {
+          throw new Error()
+        }
+        const sub = result[1]
+        const idx = parseInt(result[2])
+        if (i === lstIdx) {
+          obj[sub][idx] = value
+        } else {
+          obj = obj[sub][idx]
+        }
+      }
+    } else if (i === lstIdx) {
+      obj[p] = value
+    } else {
+      obj = obj[p]
+    }
+  }
+  return ret
 }

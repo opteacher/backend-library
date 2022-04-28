@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 // import Path from "path";
 // import { fileURLToPath } from "url";
-import { readConfig, scanPath, rmvEndsOf } from "../utils/index.js";
+import { readConfig } from "../utils/index.js";
 
 export async function getDbByName(name, cfgPath) {
 	const config = readConfig(cfgPath, true)[name];

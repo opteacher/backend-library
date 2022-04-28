@@ -18,4 +18,6 @@ export declare function rmvStartsOf (text: string, prefix: string): string;
 
 export declare function rmvEndsOf (text: string, suffix: string): string;
 
-export declare function pickProp(obj: object, prop: string): any;
+export declare function getProp(obj: object, prop: string): any;
+
+export declare function setProp(obj: object, prop: string, value: any): void;

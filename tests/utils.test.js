@@ -12,7 +12,9 @@ import {
   rmvStartsOf,
   rmvEndsOf,
   getErrContent,
-  pickProp,
+  getProp,
+  setProp,
+  readConfig,
 } from '../utils/index.js'
 
 describe('# 工具包', () => {
@@ -144,8 +146,9 @@ describe('# 工具包', () => {
     })
   })
 
-  describe('# pickProp', () => {
+  describe('# getProp & setProp', () => {
     const tstObj = {
+      text: 'abcd',
       num: 123,
       ary: ['2', 45, 'tttt'],
       objAry: [
@@ -161,30 +164,83 @@ describe('# 工具包', () => {
       },
     }
 
-    test('# 访问直接分量', () => {
-      expect(pickProp(tstObj, 'num')).toEqual(123)
+    test('# 访问直接字段', () => {
+      expect(getProp(tstObj, 'num')).toEqual(123)
+    })
+
+    test('# 修改直接字段', () => {
+      setProp(tstObj, 'text', 'iiii')
+      expect(tstObj).toHaveProperty('text', 'iiii')
     })
 
     test('# 访问数组元素', () => {
-      expect(pickProp(tstObj, 'ary[1]')).toEqual(45)
+      expect(getProp(tstObj, 'ary[1]')).toEqual(45)
+    })
+
+    test('# 修改数组元素', () => {
+      setProp(tstObj, 'ary[2]', 'abcd')
+      expect(tstObj.ary[2]).toEqual('abcd')
     })
 
     test('# 访问数组元素（错误：无字段）', () => {
-      expect(() => pickProp(tstObj, '[1]')).toThrowError()
+      expect(() => getProp(tstObj, '[1]')).toThrowError()
     })
 
     test('# 访问数组元素（错误：下标非数字）', () => {
-      expect(() => pickProp(tstObj, 'ary[h]')).toThrowError()
+      expect(() => getProp(tstObj, 'ary[h]')).toThrowError()
     })
 
     test('# 访问多层字段', () => {
-      expect(pickProp(tstObj, 'obj.sub.str')).toEqual('456456')
+      expect(getProp(tstObj, 'obj.sub.str')).toEqual('456456')
+    })
+
+    test('# 修改多层字段', () => {
+      setProp(tstObj, 'obj.sub.str', '123456')
+      expect(tstObj.obj.sub.str).toEqual('123456')
     })
 
     test('# 访问多层对象数组元素', () => {
       expect(() => {
-        expect(pickProp(tstObj, 'objAry[{name:a}]')).toHaveProperty('age', 12)
+        expect(getProp(tstObj, 'objAry[{name:a}]')).toHaveProperty('age', 12)
       }).not.toThrowError()
+    })
+
+    test('# 修改多层对象数组元素', () => {
+      expect(() => {
+        setProp(tstObj, 'objAry[{name:b}].age', 20)
+        expect(tstObj.objAry[1].age).toEqual(20)
+      }).not.toThrowError()
+    })
+
+    test('# 修改多层对象数组元素（索引）', () => {
+      expect(() => {
+        setProp(tstObj, 'objAry[0].age', 10)
+        expect(tstObj.objAry[0].age).toEqual(10)
+      }).not.toThrowError()
+    })
+  })
+
+  describe('# readConfig', () => {
+    describe('# 带环境变量', () => {
+      beforeAll(() => {
+        process.NODE_ENV = 'dev'
+      })
+
+      test('# 访问db.dev.toml', () => {
+        expect(
+          readConfig(Path.resolve('tests', 'configs', 'db'), true)
+        ).toHaveProperty('mongo')
+      })
+
+      afterAll(() => {
+        process.NODE_ENV = undefined
+      })
+    })
+
+    test('# 不带环境变量', () => {
+      expect(
+        readConfig(Path.resolve('tests', 'configs', 'server'))
+      ).toHaveProperty('secret', 'abcd')
     })
   })
 })

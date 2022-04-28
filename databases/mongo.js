@@ -1,8 +1,8 @@
 'use strict'
 import { readFile } from 'fs/promises'
 import mongoose from 'mongoose'
+import { setProp, getProp, getErrContent } from '../utils/index.js'
 mongoose.Promise = global.Promise
-import { pickProp, getErrContent } from '../utils/index.js'
 
 // @block{Mongo}:mongodb的实例类
 // @role:数据库操作类
@@ -138,7 +138,7 @@ export default class Mongo {
             })
             break
           case 'doing':
-            console.error('mongoose不支持doing中间件')
+            console.warn('mongoose不支持doing中间件')
             break
           case 'after':
             schema.post(self.Middles[obs], func)
@@ -234,38 +234,35 @@ export default class Mongo {
     try {
       await this.connect()
       const obj = await mdlInf.model.findById(id)
-      for (const [k, v] of Object.entries(values)) {
-        const propType = pickProp(mdlInf.struct, k)
+      for (const [key, v] of Object.entries(values)) {
+        const propType = getProp(mdlInf.struct, key)
+        let value = v
         switch (options.updMode.toLowerCase()) {
           case 'append':
             if (propType instanceof String || propType.name === 'Number') {
-              obj.set(k, obj.get(k) + v)
+              value = getProp(obj, key) + v
             } else if (propType instanceof Array || propType.name === 'Array') {
-              // https://github.com/Automattic/mongoose/issues/4455
-              obj.set(k, obj.get(k).concat(v))
-            } else {
-              obj.set(k, v)
+              value = getProp(obj, key).concat(v)
             }
             break
           case 'delete':
             if (propType instanceof String) {
-              obj.set(k, '')
+              value = ''
             } else if (propType.name === 'Number') {
-              obj.set(k, 0)
+              value = 0
             } else if (propType instanceof Array || propType.name === 'Array') {
-              const array = obj.get(k)
-              array.splice(array.indexOf(v), 1)
-              obj.set(k, array)
+              value = getProp(obj, key)
+              value.splice(value.indexOf(v), 1)
             } else {
-              obj[k] = undefined
+              value = undefined
             }
             break
           case 'cover':
           default:
-            obj.set(k, v)
         }
+        setProp(obj, key, value)
       }
-      return obj.save().then((res) => res.toObject())
+      return obj.save()
     } catch (error) {
       return getErrContent(error)
     }
@@ -287,8 +284,8 @@ export default class Mongo {
           return this.saveOne(mdlInf, condition._index, values, options)
         } else {
           const result = await mdlInf.model.find(condition)
-          return result.map((res) =>
-            this.saveOne(mdlInf, res._id, values, options)
+          return Promise.all(
+            result.map((res) => this.saveOne(mdlInf, res._id, values, options))
           )
         }
       } else {

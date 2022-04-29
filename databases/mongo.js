@@ -173,8 +173,7 @@ export default class Mongo {
         selCols = options.selCols.join(' ')
       }
 
-      if (condition._index) {
-        let res = mdlInf.model.findById(condition._index, selCols)
+      const doSel = (res) => {
         if (options.ext) {
           for (const [prop] of Object.entries(
             Mongo.getRefCollection(mdlInf.struct)
@@ -183,6 +182,10 @@ export default class Mongo {
           }
         }
         return res.exec()
+      }
+
+      if (condition._index) {
+        return doSel(mdlInf.model.findById(condition._index, selCols))
       }
 
       let order_by = null
@@ -210,14 +213,7 @@ export default class Mongo {
       if (limit) {
         res = res.limit(limit)
       }
-      if (options.ext) {
-        for (const [prop] of Object.entries(
-          Mongo.getRefCollection(mdlInf.struct)
-        )) {
-          res = res.populate(prop)
-        }
-      }
-      return res.exec()
+      return doSel(res)
     } catch (error) {
       return getErrContent(error)
     }
@@ -317,7 +313,7 @@ export default class Mongo {
     try {
       await this.connect()
       return new Promise((res, rej) => {
-        mdlInf.model.deleteMany({}, (err) => {
+        mdlInf.model.remove((err) => {
           err ? rej(err) : res()
         })
       })
@@ -346,9 +342,11 @@ export default class Mongo {
   async max(mdlInf, prop, condition = null) {
     try {
       await this.connect()
-      const res = mdlInf.model.findOne(condition, prop, {
-        sort: { [prop]: 1 },
-      })
+      const res = await mdlInf.model
+        .findOne(condition)
+        .select(prop)
+        .sort({ [prop]: -1 })
+        .exec()
       return res && res[prop] ? res[prop] : 0
     } catch (error) {
       return getErrContent(error)

@@ -27,13 +27,21 @@
 		"@babel/plugin-transform-runtime": "^7.17.0",
 		"@babel/preset-env": "^7.16.11",
 		"@babel/preset-react": "*",
+		"axios": "^0.27.2",
 		"babel-jest": "^27.5.1",
 		"core-js": "^3.21.1",
 		"cross-env": "^7.0.3",
 		"jest": "*",
+		"koa": "^2.13.4",
+		"koa-body": "^5.0.0",
+		"koa-json": "^2.0.2",
+		"koa-logger": "^3.2.1",
+		"koa-router": "^10.1.1",
+		"koa2-cors": "^2.0.6",
 		"react-test-renderer": "*",
 		"regenerator": "^0.14.7",
-		"regenerator-runtime": "^0.13.9"
+		"regenerator-runtime": "^0.13.9",
+		"supertest": "^6.2.3"
 	},
 	"dependencies": {
 		"lodash": "^4.17.21",

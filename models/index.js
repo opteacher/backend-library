@@ -38,6 +38,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
     }
     if (cfg.inits) {
       for (const [mname, initFile] of Object.entries(cfg.inits)) {
+        await db.sync(models.find((model) => model.name === mname))
         const numIpt = await db.dump(
           models.find((model) => model.name === mname),
           Path.resolve(initFile)
@@ -140,7 +141,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
           // @steps{3_3_2_5}:*DELETE*：同GET
           router.delete(DelUrl, async (ctx) => {
             ctx.body = {
-              data: await db.del(minfo, {
+              data: await db.remove(minfo, {
                 _index: ctx.params.index,
               }),
             }
@@ -208,7 +209,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
             const ClrUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}/:parent_idx/${prop}`
             router.delete(ClrUrl, async (ctx) => {
               ctx.body = {
-                data: await db.save(
+                data: await db.saveOne(
                   minfo,
                   ctx.params.parent_idx,
                   { [prop]: value instanceof Array ? [] : '' },

@@ -10,7 +10,7 @@ router.get('/', ctx => {
 
 router.get('/active', ctx => {
   ctx.body = {
-    result: { message: 'Hello World' }
+    result: { message: 'Hello Active' }
   }
 })
 

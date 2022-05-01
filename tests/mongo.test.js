@@ -29,6 +29,13 @@ describe('# MongoDB', () => {
           thing: mgoDB.PropTypes.Any,
           num: mgoDB.PropTypes.Number,
         },
+        subArray: [
+          {
+            name: mgoDB.PropTypes.String,
+            thing: mgoDB.PropTypes.Any,
+            num: mgoDB.PropTypes.Number,
+          },
+        ],
       },
       {
         router: {
@@ -175,11 +182,20 @@ describe('# MongoDB', () => {
       expect(user.tags).toContain(true)
     })
 
-    test('# 改db.save()，删除数组类型字段的元素', async () => {
+    test('# 改db.save()，删除数组类型字段的元素（用值）', async () => {
       await mgoDB.saveOne(User, userID, { tags: 'hhhh' }, { updMode: 'delete' })
       const user = await mgoDB.select(User, { _index: userID })
       // 删除之后记录数据刷新
       expect(user.tags).not.toContain('hhhh')
+    })
+
+    test('# 改db.save()，删除数组类型字段的元素（用索引）', async () => {
+      let user = await mgoDB.select(User, { _index: userID })
+      const fstEle = user.tags[0]
+      await mgoDB.saveOne(User, userID, { 'tags[0]': null }, { updMode: 'delete' })
+      user = await mgoDB.select(User, { _index: userID })
+      // 删除之后记录数据刷新
+      expect(user.tags[0]).not.toEqual(fstEle)
     })
 
     test('# 改db.save()，修改子字段（字符串）', async () => {
@@ -194,6 +210,77 @@ describe('# MongoDB', () => {
       const user = await mgoDB.select(User, { _index: userID })
       // 修改之后记录数据刷新
       expect(user.subItem.num).toEqual(12)
+    })
+
+    describe('# 改db.save()，操作对象数组字段', () => {
+      test('# 增（从无到有）', async () => {
+        await mgoDB.saveOne(
+          User,
+          userID,
+          {
+            subArray: {
+              name: 'opteacher',
+              thing: {
+                a: 1,
+                b: '34345',
+                c: true,
+              },
+              num: 20,
+            },
+          },
+          { updMode: 'append' }
+        )
+        const user = await mgoDB.select(User, { _index: userID })
+        expect(user.subArray.length).toBeGreaterThan(0)
+      })
+
+      test('# 增（从有到有）', async () => {
+        await mgoDB.saveOne(
+          User,
+          userID,
+          {
+            subArray: {
+              name: 'opower',
+              thing: {
+                d: '3333',
+                e: false,
+              },
+              num: 30,
+            },
+          },
+          { updMode: 'append' }
+        )
+        const user = await mgoDB.select(User, { _index: userID })
+        expect(user.subArray.length).toBeGreaterThan(1)
+      })
+
+      test('# 改1（根据索引）', async () => {
+        await mgoDB.saveOne(User, userID, {
+          'subArray[0].num': 15,
+        })
+        const user = await mgoDB.select(User, { _index: userID })
+        expect(user.subArray[0].num).toEqual(15)
+      })
+
+      test('# 改2（根据字段值）', async () => {
+        await mgoDB.saveOne(User, userID, {
+          'subArray[{num:15}].name': 'abcd',
+        })
+        const user = await mgoDB.select(User, { _index: userID })
+        expect(user.subArray[0].name).toEqual('abcd')
+      })
+
+      test('# 删', async () => {
+        await mgoDB.saveOne(
+          User,
+          userID,
+          { 'subArray[{name:opower}]': undefined },
+          { updMode: 'delete' }
+        )
+        const user = await mgoDB.select(User, { _index: userID })
+        const subIdx = user.subArray.findIndex(ele => ele.name === 'opower')
+        expect(subIdx).toEqual(-1)
+      })
     })
 
     describe('# 改db.save()，修改多记录', () => {
@@ -306,7 +393,12 @@ describe('# MongoDB', () => {
         age: 32,
         tags: ['married'],
       })
-      await mgoDB.saveOne(Organ, _index, { users: user.id }, { updMode: 'append' })
+      await mgoDB.saveOne(
+        Organ,
+        _index,
+        { users: user.id },
+        { updMode: 'append' }
+      )
       const organ = await mgoDB.select(Organ, { _index })
       expect(organ.users[organ.users.length - 1].toString()).toEqual(user.id)
     })
@@ -325,7 +417,10 @@ describe('# MongoDB', () => {
     })
 
     test('# max', async () => {
-      const users = await mgoDB.select(User, { order_by: { age: -1 }, limit: 1 })
+      const users = await mgoDB.select(User, {
+        order_by: { age: -1 },
+        limit: 1,
+      })
       expect(await mgoDB.max(User, 'age')).toEqual(users[0].age)
     })
   })

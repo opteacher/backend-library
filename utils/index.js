@@ -194,7 +194,7 @@ export function getProp(obj, prop) {
         const sub = result[1]
         const key = result[2]
         const val = result[3]
-        obj = obj[sub].find((itm) => itm[key] === val)
+        obj = obj[sub].find((itm) => itm[key] == val)
       } else {
         const result = /^(\w+)\[(\d+)\]$/.exec(p)
         if (!result || result.length < 3) {
@@ -234,7 +234,7 @@ export function setProp(obj, prop, value) {
         const sub = result[1]
         const key = result[2]
         const val = result[3]
-        const idx = obj[sub].findIndex((itm) => itm[key] === val)
+        const idx = obj[sub].findIndex((itm) => itm[key] == val)
         if (idx === -1) {
           throw new Error()
         }

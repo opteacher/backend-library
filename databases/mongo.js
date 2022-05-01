@@ -4,6 +4,35 @@ import mongoose from 'mongoose'
 import { setProp, getProp, getErrContent } from '../utils/index.js'
 mongoose.Promise = global.Promise
 
+function getPropType(struct, prop) {
+  if (!prop) {
+    return struct
+  }
+  if (prop.indexOf('.') === -1 && (prop in struct)) {
+    prop += '.'
+  }
+  const props = prop.split('.')
+  for (let i = 0; i < props.length; ++i) {
+    const p = props[i]
+    if (p === '') {
+      continue
+    } else if (p.endsWith(']')) {
+      const endIdx = p.indexOf('[')
+      if (endIdx === -1) {
+        throw new Error()
+      }
+      const sub = p.substring(0, endIdx)
+      struct = struct[sub]
+      // 如果检索的是数组元素，则直接返回数组类型
+      if (struct.length && i !== props.length - 1) {
+        struct = struct[0]
+      }
+    } else {
+      struct = struct[p]
+    }
+  }
+  return struct
+}
 // @block{Mongo}:mongodb的实例类
 // @role:数据库操作类
 // @includes:lodash
@@ -230,8 +259,9 @@ export default class Mongo {
     try {
       await this.connect()
       const obj = await mdlInf.model.findById(id)
-      for (const [key, v] of Object.entries(values)) {
-        const propType = getProp(mdlInf.struct, key)
+      for (const [k, v] of Object.entries(values)) {
+        const propType = getPropType(mdlInf.struct, k)
+        let key = k
         let value = v
         switch (options.updMode.toLowerCase()) {
           case 'append':
@@ -247,8 +277,30 @@ export default class Mongo {
             } else if (propType.name === 'Number') {
               value = 0
             } else if (propType instanceof Array || propType.name === 'Array') {
-              value = getProp(obj, key)
-              value.splice(value.indexOf(v), 1)
+              let index = -1
+              const lstIdx = key.lastIndexOf('[')
+              if (lstIdx === -1) {
+                value = getProp(obj, key)
+                index = value.indexOf(v)
+              } else {
+                value = getProp(obj, key.substring(0, lstIdx))
+                const idxKey = key.substring(lstIdx)
+                key = key.substring(0, lstIdx)
+                if (idxKey.endsWith('}]')) {
+                  const res = /^\[\{(\w+):(\"?\w+\"?)\}\]$/.exec(idxKey)
+                  if (!res || res.length < 3) {
+                    throw new Error()
+                  }
+                  index = value.findIndex((itm) => itm[res[1]] == res[2])
+                } else {
+                  const res = /^\[(\d+)\]$/.exec(idxKey)
+                  if (!res || res.length < 2) {
+                    throw new Error()
+                  }
+                  index = parseInt(res[1])
+                }
+              }
+              value.splice(index, 1)
             } else {
               value = undefined
             }
@@ -313,7 +365,7 @@ export default class Mongo {
     try {
       await this.connect()
       return new Promise((res, rej) => {
-        mdlInf.model.remove((err) => {
+        mdlInf.model.deleteMany({}, (err) => {
           err ? rej(err) : res()
         })
       })

@@ -14,6 +14,16 @@ describe('# MongoDB', () => {
     username: 'abcd',
     password: 'frfrfr',
     age: 12,
+    subItem: {
+      name: 'asfsdf',
+      thing: false,
+      num: 12
+    },
+    subArray: [{
+      name: 'sdfsgrtgt',
+      thing: { text: 'dsfsff' },
+      num: 20
+    }]
   }
   beforeAll(async () => {
     mgoDB = await getDbByName('mongo', Path.resolve('tests', 'configs', 'db'))

@@ -1,5 +1,4 @@
-export default db => db.defineModel({
-  __modelName: 'demo',
+export default db => db.defineModel('demo', {
   message: db.PropTypes.String,
   subs: [{ type: db.PropTypes.Id, ref: 'sub' }]
 }, {

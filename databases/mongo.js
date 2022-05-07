@@ -1,4 +1,5 @@
 'use strict'
+import _ from 'lodash'
 import { readFile } from 'fs/promises'
 import mongoose from 'mongoose'
 import { setProp, getProp, getErrContent } from '../utils/index.js'
@@ -87,7 +88,7 @@ export default class Mongo {
   // @type:function (prototype)
   // @return{conn}[Promise]:连接Promise
   connect() {
-    return mongoose.connect(
+    return Promise.resolve(mongoose.connect(
       [
         'mongodb://',
         this.config.username ? `${this.config.username}:` : '',
@@ -100,7 +101,7 @@ export default class Mongo {
         useNewUrlParser: true,
         keepAlive: false,
       }
-    )
+    ))
   }
 
   disconnect() {
@@ -109,6 +110,7 @@ export default class Mongo {
 
   // @block{defineModel}:定义模型
   // @type:function (prototype)
+  // @params{name}[string]:模型名
   // @params{struct}[object]:ORM结构
   // @params{options}[object]:定义参数
   //  * *router*[`object`]：路由参数
@@ -123,16 +125,13 @@ export default class Mongo {
   //    > 每个中间件属性都可以定义before/doing/after三个子属性
   // @notices:因为在mongoose中，创建/更新/保存都用的同\
   //  一个save接口，所以这三个操作无法同时定义，待修复
-  defineModel(struct, options) {
+  defineModel(name, struct, options) {
     if (!options) {
       options = {}
     }
     if (!options.middle) {
       options.middle = {}
     }
-
-    let mdlName = struct.__modelName
-    delete struct.__modelName
 
     if (!options.operate) {
       options.operate = {}
@@ -149,8 +148,30 @@ export default class Mongo {
     setOperate('create')
     setOperate('delete')
 
-    let self = this
-    let schema = mongoose.Schema(struct)
+    const self = this
+    // 为子文档设置shema包围
+    const types = Object.values(self.PropTypes)
+    const pkgSubProp = (subStt) => {
+      for (const [prop, val] of Object.entries(subStt)) {
+        const isAry = val instanceof Array && val.length === 1
+        let value = val
+        if (isAry) {
+          value = val[0]
+        }
+        if (!types.includes(value) && !value.type) {
+          pkgSubProp(value)
+          if (isAry) {
+            subStt[prop] = [mongoose.Schema(value)]
+          } else {
+            subStt[prop] = mongoose.Schema(value)
+          }
+        }
+      }
+    }
+    const adjStt = _.cloneDeep(struct)
+    pkgSubProp(adjStt)
+
+    const schema = mongoose.Schema(adjStt)
     for (const [obs, v] of Object.entries(options.middle)) {
       if (!(obs in self.Middles)) {
         continue
@@ -176,14 +197,14 @@ export default class Mongo {
       }
     }
 
-    let model = mongoose.model(mdlName, schema)
-    this.models[mdlName] = {
+    let model = mongoose.model(name, schema)
+    this.models[name] = {
       model,
-      name: mdlName,
+      name,
       struct,
       options,
     }
-    return this.models[mdlName]
+    return this.models[name]
   }
 
   async select(mdlInf, condition, options) {

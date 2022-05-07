@@ -61,7 +61,7 @@ declare class DataBase {
   connect (): Promise<Conn>;
   disconnect (): Promise<void>;
   useDataBase (dbName: string): Promise<boolean>;
-  defineModel (struct: NamedStruct, options?: DefineOptions): MdlInf;
+  defineModel (name: string, struct: NamedStruct, options?: DefineOptions): MdlInf;
   select (mdlInf: MdlInf, condition?: any, options?: SelectOptions): Promise<any>;
   save (mdlInf: MdlInf, values: any, condition?: any, options?: SaveOptions): Promise<any>;
   saveOne (mdlInf: MdlInf, id: any, values: any, options?: SaveOptions): Promise<any>;

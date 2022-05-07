@@ -27,9 +27,8 @@ describe('# MongoDB', () => {
   }
   beforeAll(async () => {
     mgoDB = await getDbByName('mongo', Path.resolve('tests', 'configs', 'db'))
-    User = mgoDB.defineModel(
+    User = mgoDB.defineModel('user',
       {
-        __modelName: 'user',
         username: mgoDB.PropTypes.String,
         password: mgoDB.PropTypes.String,
         age: mgoDB.PropTypes.Number,
@@ -66,8 +65,7 @@ describe('# MongoDB', () => {
         },
       }
     )
-    Organ = mgoDB.defineModel({
-      __modelName: 'organ',
+    Organ = mgoDB.defineModel('organ', {
       name: mgoDB.PropTypes.String,
       users: [{ type: mgoDB.PropTypes.Id, ref: 'user' }],
     })
@@ -375,6 +373,11 @@ describe('# MongoDB', () => {
       await mgoDB.sync(Organ)
       const organ = await mgoDB.save(Organ, { name: 'abcd' })
       _index = organ.id
+    })
+
+    test('# 未关联前查询', async () => {
+      const organ = await mgoDB.select(Organ, { _index }, { ext: true })
+      expect(organ).toHaveProperty('users', [])
     })
 
     test('# 关联所有用户', async () => {

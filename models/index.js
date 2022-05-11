@@ -93,7 +93,7 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
           // @steps{3_3_2_2}:*ALL*：查所有，**不会联表**
           router.get(AllUrl, async (ctx) => {
             ctx.body = {
-              data: await db.select(minfo, ctx.query),
+              data: await db.select(minfo, ctx.request.query),
             }
           })
           path = AllUrl
@@ -116,10 +116,12 @@ export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
         case 'put':
           // @steps{3_3_2_4}:*PUT*：同POST
           router.put(PutUrl, async (ctx) => {
+            const updMode = ctx.request.query.updMode || 'cover'
             const data = await db.saveOne(
               minfo,
               ctx.params.index,
-              ctx.request.body
+              ctx.request.body,
+              { updMode }
             )
             if (typeof data === 'string') {
               ctx.body = {

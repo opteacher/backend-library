@@ -278,6 +278,25 @@ describe('# MongoDB', () => {
         expect(user.subArray[0].name).toEqual('abcd')
       })
 
+      test('# merge改', async () => {
+        await mgoDB.saveOne(User, userID, {
+          'subItem': { num: 20 },
+        }, { updMode: 'merge' })
+        const user = await mgoDB.select(User, { _index: userID })
+        expect(user.subItem.num).toEqual(20)
+        expect(user.subItem.thing).toBeFalsy()
+      })
+
+      test('# merge改（数组元素）', async () => {
+        await mgoDB.saveOne(User, userID, {
+          'subArray[{name:abcd}]': { num: 25 }
+        }, { updMode: 'merge' })
+        const user = await mgoDB.select(User, { _index: userID })
+        const subEl = user.subArray.find(el => el.name === 'abcd')
+        expect(subEl.num).toEqual(25)
+        expect(subEl.thing.text).toEqual('dsfsff')
+      })
+
       test('# 删', async () => {
         await mgoDB.saveOne(
           User,

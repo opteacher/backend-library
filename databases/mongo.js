@@ -326,6 +326,16 @@ export default class Mongo {
               value = undefined
             }
             break
+          case 'merge':
+            if (propType.name === 'Map') {
+              value = getProp(obj, key)
+              for (const [sk, sv] of Object.entries(v)) {
+                value.set(sk, sv)
+              }
+            } else if (propType instanceof Object) {
+              value = Object.assign(getProp(obj, key) || {}, v)
+            }
+            break
           case 'cover':
           default:
         }

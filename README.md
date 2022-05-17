@@ -36,10 +36,10 @@ git submodule add git@gitlab.com:opteacher/backend-library.git
 
 ```json
 "scripts": {
-  "start:dev": "tsc && cd dist && cross-env ENV=dev node app.js", // 开发环境启动，环境变量dev
-  "start:prod": "tsc && cd dist && cross-env ENV=prod node app.js", // 生产环境启动，环境变量prod
-  "test": "cross-env ENV=dev jest", // 运行测试用例
-  "test-c": "cross-env ENV=dev jest --coverage" // 运行测试用例（生成覆盖率报告）
+  "start:dev": "tsc && cd dist && cross-env NODE_ENV=dev node app.js", // 开发环境启动，环境变量dev
+  "start:prod": "tsc && cd dist && cross-env NODE_ENV=prod node app.js", // 生产环境启动，环境变量prod
+  "test": "cross-env NODE_ENV=dev jest", // 运行测试用例
+  "test-c": "cross-env NODE_ENV=dev jest --coverage" // 运行测试用例（生成覆盖率报告）
 }
 ```
 

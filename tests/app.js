@@ -10,13 +10,11 @@ import { genMdlRoutes } from '../models'
 
 export default async function (db) {
   const router = await genApiRoutes(Path.resolve('tests', 'routes'))
-  const models = (
-    await genMdlRoutes(
-      db,
-      Path.resolve('tests', 'models'),
-      Path.resolve('tests', 'configs', 'models')
-    )
-  ).router
+  const models = await genMdlRoutes(
+    Path.resolve('tests', 'models'),
+    Path.resolve('tests', 'configs', 'models'),
+    db
+  )
 
   const app = new Koa()
 
@@ -40,7 +38,7 @@ export default async function (db) {
   // json解析
   app.use(json())
   // 模型路由
-  app.use(models.routes()).use(models.allowedMethods())
+  app.use(models.router.routes()).use(models.router.allowedMethods())
   // 路径分配
   app.use(router.routes()).use(router.allowedMethods())
 

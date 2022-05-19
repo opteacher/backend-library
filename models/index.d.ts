@@ -19,4 +19,4 @@ interface ModelExports {
   db: DataBase
 }
 
-export declare function genMdlRoutes(db: DataBase, mdlsPath: string, mdlCfgPath: string): Promise<ModelExports>;
+export declare function genMdlRoutes(mdlsPath: string, mdlCfgPath: string, db?: DataBase): Promise<ModelExports>;

@@ -6,8 +6,14 @@ import * as utils from '../utils/index.js'
 
 const router = new Router()
 
-export async function genMdlRoutes(db, mdlsPath, mdlCfgPath) {
+export async function genMdlRoutes(mdlsPath, mdlCfgPath, db) {
   const cfg = utils.readConfig(mdlCfgPath)
+  if (!db) {
+    const cfgPath = Path.resolve('configs')
+    const dbConfig = utils.readConfig(Path.join(cfgPath, 'db'), true)[cfg.type]
+    const ImplDB = await import(`../databases/${cfg.type}.js`)
+    db = new ImplDB.default(dbConfig)
+  }
 
   // @block{modelRoutes}:模型生成路由
   // @includes:lodash

@@ -6,8 +6,8 @@ import * as utils from '../utils/index.js'
 
 const router = new Router()
 
-export async function genMdlRoutes(mdlsPath, mdlCfgPath, db) {
-  const cfg = utils.readConfig(mdlCfgPath)
+export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
+  const cfg = typeof mdlConfig === 'string' ? utils.readConfig(mdlConfig) : mdlConfig
   if (!db) {
     const cfgPath = Path.resolve('configs')
     const dbConfig = utils.readConfig(Path.join(cfgPath, 'db'), true)[cfg.type]

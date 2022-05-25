@@ -2,6 +2,7 @@ import _ from 'lodash'
 import fs from 'fs'
 import path from 'path'
 import toml from 'toml'
+import qiniu from 'qiniu'
 
 // @block{scanPath}:扫描指定目录和子目录
 // @type:function
@@ -263,4 +264,54 @@ export function setProp(obj, prop, value) {
     }
   }
   return ret
+}
+
+export async function uploadToQiniu(qnCfgPath, key, readableStream) {
+  const qnCfg = readConfig(qnCfgPath)
+  if (!qnCfg.host) {
+    qnCfg.host = 'cdn.opteacher.top'
+  }
+  const mac = new qiniu.auth.digest.Mac(qnCfg.accessKey, qnCfg.secretKey)
+
+  const config = new qiniu.conf.Config({
+    zone: qiniu.zone.Zone_z2
+  })
+
+  const url = `http://${qnCfg.host}/${key}`
+  let needRefresh = false
+  try {
+    const resp = await axios.get(new URL(url).href)
+    needRefresh = resp.status === 200
+  } catch (e) {}
+
+  const putPolicy = new qiniu.rs.PutPolicy({
+    scope: `${qnCfg.bucket}:${key}`
+  })
+  const uploadToken = putPolicy.uploadToken(mac)
+
+  const formUploader = new qiniu.form_up.FormUploader(config)
+  const putExtra = new qiniu.form_up.PutExtra()
+  await new Promise((res, rej) => {
+    formUploader.putStream(uploadToken, key, readableStream, putExtra, (respErr, respBody, respInfo) => {
+      if (respErr) {
+        rej(respErr)
+      }
+      if (respInfo.statusCode == 200) {
+        res(respBody)
+      } else {
+        console.log(respInfo.statusCode)
+        rej(respBody)
+      }
+    })
+  })
+  if (needRefresh) {
+    // 刷新缓存
+    const cdnManager = new qiniu.cdn.CdnManager(mac)
+    await new Promise((res, rej) => {
+      cdnManager.refreshUrls([url], function (err) {
+        err ? rej(err) : res()
+      })
+    })
+  }
+  return Promise.resolve(url)
 }

@@ -4,3 +4,10 @@ username="root"
 password="12345"
 host="81.69.34.148"
 port=27017
+
+[mysql]
+database="test"
+username="root"
+password="12345"
+host="81.69.34.148"
+port=3306

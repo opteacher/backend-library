@@ -180,7 +180,7 @@ export function getProp(obj, prop) {
   if (!prop) {
     return obj
   }
-  if (prop.indexOf('.') === -1 && (prop in obj)) {
+  if (prop.indexOf('.') === -1 && prop in obj) {
     prop += '.'
   }
   for (const p of prop.split('.')) {
@@ -212,11 +212,18 @@ export function getProp(obj, prop) {
   return obj
 }
 
-export function setProp(obj, prop, value) {
+export function setProp(
+  obj,
+  prop,
+  value,
+  callback = (base, key, value) => {
+    base[key] = value
+  }
+) {
   if (!prop) {
     return obj
   }
-  if (prop.indexOf('.') === -1 && (prop in obj)) {
+  if (prop.indexOf('.') === -1 && prop in obj) {
     prop = '.' + prop
   }
   const ret = obj
@@ -240,7 +247,7 @@ export function setProp(obj, prop, value) {
           throw new Error()
         }
         if (i === lstIdx) {
-          obj[sub][idx] = value
+          callback(obj[sub], idx, value)
         } else {
           obj = obj[sub][idx]
         }
@@ -252,13 +259,13 @@ export function setProp(obj, prop, value) {
         const sub = result[1]
         const idx = parseInt(result[2])
         if (i === lstIdx) {
-          obj[sub][idx] = value
+          callback(obj[sub], idx, value)
         } else {
           obj = obj[sub][idx]
         }
       }
     } else if (i === lstIdx) {
-      obj[p] = value
+      callback(obj, p, value)
     } else {
       obj = obj[p]
     }
@@ -274,7 +281,7 @@ export async function uploadToQiniu(qnCfgPath, key, readableStream) {
   const mac = new qiniu.auth.digest.Mac(qnCfg.accessKey, qnCfg.secretKey)
 
   const config = new qiniu.conf.Config({
-    zone: qiniu.zone.Zone_z2
+    zone: qiniu.zone.Zone_z2,
   })
 
   const url = `http://${qnCfg.host}/${key}`
@@ -285,24 +292,30 @@ export async function uploadToQiniu(qnCfgPath, key, readableStream) {
   } catch (e) {}
 
   const putPolicy = new qiniu.rs.PutPolicy({
-    scope: `${qnCfg.bucket}:${key}`
+    scope: `${qnCfg.bucket}:${key}`,
   })
   const uploadToken = putPolicy.uploadToken(mac)
 
   const formUploader = new qiniu.form_up.FormUploader(config)
   const putExtra = new qiniu.form_up.PutExtra()
   await new Promise((res, rej) => {
-    formUploader.putStream(uploadToken, key, readableStream, putExtra, (respErr, respBody, respInfo) => {
-      if (respErr) {
-        rej(respErr)
+    formUploader.putStream(
+      uploadToken,
+      key,
+      readableStream,
+      putExtra,
+      (respErr, respBody, respInfo) => {
+        if (respErr) {
+          rej(respErr)
+        }
+        if (respInfo.statusCode == 200) {
+          res(respBody)
+        } else {
+          console.log(respInfo.statusCode)
+          rej(respBody)
+        }
       }
-      if (respInfo.statusCode == 200) {
-        res(respBody)
-      } else {
-        console.log(respInfo.statusCode)
-        rej(respBody)
-      }
-    })
+    )
   })
   if (needRefresh) {
     // 刷新缓存

@@ -1,51 +1,54 @@
 {
-	"name": "backend-library",
-	"version": "1.0.0",
-	"description": "后台自用库，包含统一的数据库接口、模型路由、文件夹路由等。",
-	"main": "index.js",
-	"type": "module",
-	"directories": {
-		"test": "tests"
-	},
-	"scripts": {
-		"test-dev": "cross-env NODE_ENV=dev jest"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://gitlab.com/opteacher/backend-library.git"
-	},
-	"author": "",
-	"license": "ISC",
-	"bugs": {
-		"url": "https://gitlab.com/opteacher/backend-library/issues"
-	},
-	"homepage": "https://gitlab.com/opteacher/backend-library#readme",
-	"devDependencies": {
-		"@babel/core": "^7.17.8",
-		"@babel/plugin-proposal-class-properties": "*",
-		"@babel/plugin-transform-modules-commonjs": "^7.17.7",
-		"@babel/plugin-transform-runtime": "^7.17.0",
-		"@babel/preset-env": "^7.16.11",
-		"@babel/preset-react": "*",
-		"babel-jest": "^27.5.1",
-		"core-js": "^3.21.1",
-		"cross-env": "^7.0.3",
-		"jest": "*",
-		"koa": "^2.13.4",
-		"koa-body": "^5.0.0",
-		"koa-json": "^2.0.2",
-		"koa-logger": "^3.2.1",
-		"koa-router": "^10.1.1",
-		"koa2-cors": "^2.0.6",
-		"react-test-renderer": "*",
-		"regenerator": "^0.14.7",
-		"regenerator-runtime": "^0.13.9",
-		"supertest": "^6.2.3"
-	},
-	"dependencies": {
-		"lodash": "^4.17.21",
-		"mongoose": "^6.2.7",
-		"qiniu": "^7.6.0",
-		"toml": "^3.0.0"
-	}
+  "name": "backend-library",
+  "version": "1.0.0",
+  "description": "后台自用库，包含统一的数据库接口、模型路由、文件夹路由等。",
+  "main": "index.js",
+  "type": "module",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test-dev": "cross-env NODE_ENV=dev jest --runInBand"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/opteacher/backend-library.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/opteacher/backend-library/issues"
+  },
+  "homepage": "https://gitlab.com/opteacher/backend-library#readme",
+  "devDependencies": {
+    "@babel/core": "^7.17.8",
+    "@babel/plugin-proposal-class-properties": "*",
+    "@babel/plugin-transform-modules-commonjs": "^7.17.7",
+    "@babel/plugin-transform-runtime": "^7.17.0",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/preset-react": "*",
+    "babel-jest": "^27.5.1",
+    "core-js": "^3.21.1",
+    "cross-env": "^7.0.3",
+    "jest": "*",
+    "koa": "^2.13.4",
+    "koa-body": "^5.0.0",
+    "koa-json": "^2.0.2",
+    "koa-logger": "^3.2.1",
+    "koa-router": "^10.1.1",
+    "koa2-cors": "^2.0.6",
+    "react-test-renderer": "*",
+    "regenerator": "^0.14.7",
+    "regenerator-runtime": "^0.13.9",
+    "supertest": "^6.2.3"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "lodash-inflection": "^1.5.0",
+    "mongoose": "^6.2.7",
+    "mysql2": "^2.3.3",
+    "qiniu": "^7.6.0",
+    "sequelize": "^6.20.1",
+    "toml": "^3.0.0"
+  }
 }

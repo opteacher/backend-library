@@ -350,7 +350,7 @@ describe('# MongoDB', () => {
     })
 
     test('# 查db.select()，排序', async () => {
-      const users = await mgoDB.select(User, { order_by: { age: -1 } })
+      const users = await mgoDB.select(User, { order_by: { age: 'DESC' } })
       users.reduce((prev, curr) => {
         expect(prev.age).toBeGreaterThanOrEqual(curr.age)
         return curr
@@ -384,7 +384,7 @@ describe('# MongoDB', () => {
     })
   })
 
-  describe('# 连表操作', () => {
+  describe('# 联表操作', () => {
     let _index = ''
     beforeAll(async () => {
       await mgoDB.sync(User)
@@ -450,7 +450,7 @@ describe('# MongoDB', () => {
 
     test('# max', async () => {
       const users = await mgoDB.select(User, {
-        order_by: { age: -1 },
+        order_by: { age: 'DESC' },
         limit: 1,
       })
       expect(await mgoDB.max(User, 'age')).toEqual(users[0].age)

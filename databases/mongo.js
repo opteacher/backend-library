@@ -3,37 +3,9 @@ import _ from 'lodash'
 import { readFile } from 'fs/promises'
 import mongoose from 'mongoose'
 import { setProp, getProp, getErrContent } from '../utils/index.js'
+import { getPropType } from './index.js'
 mongoose.Promise = global.Promise
 
-function getPropType(struct, prop) {
-  if (!prop) {
-    return struct
-  }
-  if (prop.indexOf('.') === -1 && (prop in struct)) {
-    prop += '.'
-  }
-  const props = prop.split('.')
-  for (let i = 0; i < props.length; ++i) {
-    const p = props[i]
-    if (p === '') {
-      continue
-    } else if (p.endsWith(']')) {
-      const endIdx = p.indexOf('[')
-      if (endIdx === -1) {
-        throw new Error()
-      }
-      const sub = p.substring(0, endIdx)
-      struct = struct[sub]
-      // 如果检索的是数组元素，则直接返回数组类型
-      if (struct.length && i !== props.length - 1) {
-        struct = struct[0]
-      }
-    } else {
-      struct = struct[p]
-    }
-  }
-  return struct
-}
 // @block{Mongo}:mongodb的实例类
 // @role:数据库操作类
 // @includes:lodash
@@ -88,20 +60,22 @@ export default class Mongo {
   // @type:function (prototype)
   // @return{conn}[Promise]:连接Promise
   connect() {
-    return Promise.resolve(mongoose.connect(
-      [
-        'mongodb://',
-        this.config.username ? `${this.config.username}:` : '',
-        this.config.password ? `${this.config.password}@` : '',
-        `${this.config.host}:`,
-        `${this.config.port}/`,
-        `${this.config.database}?authSource=admin`,
-      ].join(''),
-      {
-        useNewUrlParser: true,
-        keepAlive: false,
-      }
-    ))
+    return Promise.resolve(
+      mongoose.connect(
+        [
+          'mongodb://',
+          this.config.username ? `${this.config.username}:` : '',
+          this.config.password ? `${this.config.password}@` : '',
+          `${this.config.host}:`,
+          `${this.config.port}/`,
+          `${this.config.database}?authSource=admin`,
+        ].join(''),
+        {
+          useNewUrlParser: true,
+          keepAlive: false,
+        }
+      )
+    )
   }
 
   disconnect() {
@@ -240,7 +214,12 @@ export default class Mongo {
 
       let order_by = null
       if (condition.order_by) {
-        order_by = condition.order_by
+        order_by = Object.fromEntries(
+          Object.entries(condition.order_by).map(([prop, order]) => [
+            prop,
+            { 'DESC': -1, 'ASC': 1 }[order.toUpperCase()]
+          ])
+        )
         delete condition.order_by
       }
       let offset = null

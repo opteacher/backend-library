@@ -75,3 +75,33 @@ export function fmtQuerySQL(sql, query, symbol, options) {
     return sql
   }
 }
+
+export function getPropType(struct, prop) {
+  if (!prop) {
+    return struct
+  }
+  if (prop.indexOf('.') === -1 && (prop in struct)) {
+    prop += '.'
+  }
+  const props = prop.split('.')
+  for (let i = 0; i < props.length; ++i) {
+    const p = props[i]
+    if (p === '') {
+      continue
+    } else if (p.endsWith(']')) {
+      const endIdx = p.indexOf('[')
+      if (endIdx === -1) {
+        throw new Error()
+      }
+      const sub = p.substring(0, endIdx)
+      struct = struct[sub]
+      // 如果检索的是数组元素，则直接返回数组类型
+      if (struct.length && i !== props.length - 1) {
+        struct = struct[0]
+      }
+    } else {
+      struct = struct[p]
+    }
+  }
+  return struct.type || struct
+}

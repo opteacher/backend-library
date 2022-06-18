@@ -189,7 +189,7 @@ export default class Mysql {
         }
       }
       if (prop.index) {
-        if (moptions.indexes) {
+        if (!moptions.indexes) {
           moptions.indexes = [{ unique: true, fields: [] }]
         }
         moptions.indexes[0].fields.push(pname)

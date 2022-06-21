@@ -268,11 +268,11 @@ export default class Mysql {
         delete conds.where.order_by
       }
       if (condition.offset) {
-        conds.offset = condition.offset
+        conds.offset = parseInt(condition.offset)
         delete conds.where.offset
       }
       if (condition.limit) {
-        conds.limit = condition.limit
+        conds.limit = parseInt(condition.limit)
         delete conds.where.limit
       }
 

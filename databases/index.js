@@ -103,5 +103,8 @@ export function getPropType(struct, prop) {
       struct = struct[p]
     }
   }
+  if (!struct) {
+    return
+  }
   return struct.type || struct
 }

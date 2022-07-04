@@ -261,6 +261,9 @@ export default class Mongo {
       const obj = await mdlInf.model.findById(id)
       for (const [k, v] of Object.entries(values)) {
         const propType = getPropType(mdlInf.struct, k)
+        if (!propType) {
+          continue
+        }
         let key = k
         let value = v
         switch (options.updMode.toLowerCase()) {
@@ -308,6 +311,9 @@ export default class Mongo {
           case 'merge':
             if (propType.name === 'Map') {
               value = getProp(obj, key)
+              if (!value) {
+                value = new Map()
+              }
               for (const [sk, sv] of Object.entries(v)) {
                 value.set(sk, sv)
               }

@@ -29,8 +29,6 @@ export declare function rmvEndsOf(text: string, suffix: string): string
 
 export declare function getProp(obj: object, prop: string): any
 
-export declare function getPropType(struct: object, prop: string): any
-
 export declare function setProp(obj: object, prop: string, value: any): void
 
 export declare function uploadToQiniu (

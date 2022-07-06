@@ -301,13 +301,25 @@ export default class Mysql {
               }
               break
             case '==':
-              conds.where[key] = {
-                [Op.eq]: val[1],
+              if (val[1].toLowerCase() === 'null') {
+                conds.where[key] = {
+                  [Op.is]: null
+                }
+              } else {
+                conds.where[key] = {
+                  [Op.eq]: val[1],
+                }
               }
               break
             case '!=':
-              conds.where[key] = {
-                [Op.ne]: val[1],
+              if (val[1].toLowerCase() === 'null') {
+                conds.where[key] = {
+                  [Op.not]: null
+                }
+              } else {
+                conds.where[key] = {
+                  [Op.ne]: val[1],
+                }
               }
               break
             case 'in':

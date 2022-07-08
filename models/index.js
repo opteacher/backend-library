@@ -63,7 +63,7 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
   for (const minfo of models) {
     // @steps{3_2}:定义所有用到的URL
     const GetUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}/:index`
-    const AllUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}s`
+    const AllUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}/s`
     const PostUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}`
     const PutUrl = GetUrl
     const DelUrl = GetUrl

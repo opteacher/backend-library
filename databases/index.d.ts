@@ -14,7 +14,7 @@ type Type =
   | 'Object'
   | 'Any'
 type UpdMode = 'cover' | 'append' | 'delete' | 'merge'
-type Method = 'GET' | 'POST' | 'DELETE' | 'PUT' | 'ALL' | 'LINK'
+type Method = 'GET' | 'POST' | 'DELETE' | 'PUT' | 'LINK'
 
 type DefineMiddle = {
   [middle in Middle]?: {

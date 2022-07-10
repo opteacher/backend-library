@@ -178,9 +178,9 @@ export default db.defineModel(
 				},
 			},
 		},
-		// 生成的模型路由，对应增删改查为：POST/DELETE/PUT/GET/ALL
+		// 生成的模型路由，对应增删改查为：POST/DELETE/PUT/GET
 		router: {
-			methods: ["POST", "DELETE", "PUT", "GET", "ALL"],
+			methods: ["POST", "DELETE", "PUT", "GET"],
 		},
 	}
 );

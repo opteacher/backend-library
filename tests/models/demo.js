@@ -3,6 +3,6 @@ export default db => db.defineModel('demo', {
   subs: [{ type: db.PropTypes.Id, ref: 'sub' }]
 }, {
   router: {
-    methods: ['POST', 'DELETE', 'PUT', 'GET', 'ALL', 'LINK'],
+    methods: ['POST', 'DELETE', 'PUT', 'GET', 'LINK'],
   }
 })

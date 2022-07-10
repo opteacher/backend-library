@@ -26,7 +26,7 @@ describe('# MySQL', () => {
       },
       {
         router: {
-          methods: ['POST', 'DELETE', 'PUT', 'GET', 'ALL'],
+          methods: ['POST', 'DELETE', 'PUT', 'GET'],
         },
         middle: {
           unknown: () => {

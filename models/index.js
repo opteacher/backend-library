@@ -7,7 +7,8 @@ import * as utils from '../utils/index.js'
 const router = new Router()
 
 export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
-  const cfg = typeof mdlConfig === 'string' ? utils.readConfig(mdlConfig) : mdlConfig
+  const cfg =
+    typeof mdlConfig === 'string' ? utils.readConfig(mdlConfig) : mdlConfig
   if (!db) {
     const cfgPath = Path.resolve('configs')
     const dbConfig = utils.readConfig(Path.join(cfgPath, 'db'), true)[cfg.type]
@@ -25,7 +26,8 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
   const models = []
   const pathPfx = process.platform === 'win32' ? 'file://' : ''
   for (const mfile of utils.scanPath(mdlsPath, { ignores: ['index.js'] })) {
-    const model = (await import(pathPfx + Path.resolve(mdlsPath, mfile))).default
+    const model = (await import(pathPfx + Path.resolve(mdlsPath, mfile)))
+      .default
     models.push(typeof model === 'function' ? model(db) : model)
   }
 
@@ -63,7 +65,6 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
   for (const minfo of models) {
     // @steps{3_2}:定义所有用到的URL
     const GetUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}/:index`
-    const AllUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}/s`
     const PostUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}`
     const PutUrl = GetUrl
     const DelUrl = GetUrl
@@ -77,38 +78,34 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
         case 'get':
           // @steps{3_3_2_1}:*GET*：根据id查找，**会联表**
           router.get(GetUrl, async (ctx) => {
-            const data = await db.select(
-              minfo,
-              { _index: ctx.params.index },
-              { ext: true }
-            )
-            if (typeof data === 'string') {
+            if (ctx.params.index.toLocaleLowerCase() === 's') {
               ctx.body = {
-                error: data,
+                data: await db.select(minfo, ctx.request.query),
               }
             } else {
-              ctx.body = {
-                data: data,
+              const data = await db.select(
+                minfo,
+                { _index: ctx.params.index },
+                { ext: true }
+              )
+              if (typeof data === 'string') {
+                ctx.body = {
+                  error: data,
+                }
+              } else {
+                ctx.body = {
+                  data: data,
+                }
               }
             }
           })
           path = GetUrl
-          console.log(`GET\t${GetUrl}`)
-          break
-        case 'all':
-          // @steps{3_3_2_2}:*ALL*：查所有，**不会联表**
-          router.get(AllUrl, async (ctx) => {
-            ctx.body = {
-              data: await db.select(minfo, ctx.request.query),
-            }
-          })
-          path = AllUrl
           params.push(
             { order_by: 'Prop Name' },
             { limit: 'Number' },
             { page: 'Number' }
           )
-          console.log(`GET\t${AllUrl}`)
+          console.log(`GET\t${GetUrl}`)
           break
         case 'post':
           // @steps{3_3_2_3}:*POST*：**使用form表单提交**

@@ -40,7 +40,7 @@ describe('# 生成路由', () => {
     describe('# 查询', () => {
       test('# 全查', async () => {
         const resp = await request
-          .get('/backend-library/mdl/v1/demos')
+          .get('/backend-library/mdl/v1/demo/s')
           .expect(200)
         const allRes = resp.body.data
         expect(allRes).not.toBeUndefined()

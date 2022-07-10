@@ -4,6 +4,6 @@ export default db => db.defineModel('sub', {
   num: db.PropTypes.Number,
 }, {
   router: {
-    methods: ['POST', 'DELETE', 'PUT', 'GET', 'ALL'],
+    methods: ['POST', 'DELETE', 'PUT', 'GET'],
   }
 })

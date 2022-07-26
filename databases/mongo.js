@@ -232,6 +232,44 @@ export default class Mongo {
         limit = condition.limit
         delete condition.limit
       }
+      for (const [key, val] of Object.entries(condition)) {
+        if (val instanceof Array) {
+          switch (val[0]) {
+            case '<':
+              delete condition[key]
+              condition[key] = { $lt: parseFloat(val[1]) }
+              break
+            case '>':
+              delete condition[key]
+              condition[key] = { $gt: parseFloat(val[1]) }
+              break
+            case '<=':
+              delete condition[key]
+              condition[key] = { $lte: parseFloat(val[1]) }
+              break
+            case '>=':
+              delete condition[key]
+              condition[key] = { $gte: parseFloat(val[1]) }
+              break
+            case '==':
+              if (val[1].toLowerCase() === 'null') {
+                delete condition[key]
+                condition[key] = null
+              }
+              break
+            case '!=':
+              if (val[1].toLowerCase() === 'null') {
+                delete condition[key]
+                condition[key] = { $ne: null, $exists: true }
+              }
+              break
+            case 'in':
+              delete condition[key]
+              condition[key] = { $in: val.slice(1) }
+              break
+          }
+        }
+      }
       let res = mdlInf.model.find(condition, selCols)
       if (order_by) {
         res = res.sort(order_by)

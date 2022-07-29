@@ -29,7 +29,7 @@ export default class Mysql {
       Decimal: DataTypes.DECIMAL(64, 20),
       Array: DataTypes.ARRAY,
       Object: DataTypes.JSON,
-      ANY: DataTypes.BLOB,
+      Any: DataTypes.BLOB,
     }
     this.Middles = {
       select: '',
@@ -194,6 +194,10 @@ export default class Mysql {
         }
         moptions.indexes[0].fields.push(pname)
         delete adjStt[pname].index
+      }
+      if (typeof prop.default !== 'undefined') {
+        adjStt[pname].defaultValue = prop.default == Date.now ? Sequelize.NOW : prop.default
+        delete adjStt[pname].default
       }
     }
 

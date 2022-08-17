@@ -23,20 +23,19 @@ describe('# getDbByName', () => {
 
   describe('# 用配置对象获取', () => {
     beforeAll(() => {
-      process.env['db.database'] = 'test'
+      process.env['db.database'] = 'server-package'
       process.env['db.username'] = 'root'
       process.env['db.password'] = '12345'
       process.env['db.host'] = 'localhost'
       process.env['db.port'] = 3000
     })
     test('# 1', async () => {
-      const config = buildCfgFromPcs(
-        ['database', 'username', 'password', 'host', 'port'],
-        'db'
+      const db = await getDbByName(
+        'mongo',
+        Path.resolve('tests', 'configs', 'db')
       )
-      const db = await getDbByName('mongo', config)
       expect(db).toHaveProperty('config')
-      expect(db.config).toHaveProperty('database', 'test')
+      expect(db.config).toHaveProperty('database', 'server-package')
     })
   })
 })

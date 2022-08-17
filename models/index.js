@@ -3,6 +3,7 @@ import _ from 'lodash'
 import Router from 'koa-router'
 import Path from 'path'
 import * as utils from '../utils/index.js'
+import { getDbByName } from '../databases/index.js'
 
 const router = new Router()
 
@@ -12,10 +13,7 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
   const mdlSections = ['type', 'version', 'sync', 'init', 'prefix']
   Object.assign(cfg, utils.buildCfgFromPcs(mdlSections, 'models'))
   if (!db) {
-    const cfgPath = Path.resolve('configs')
-    const dbConfig = utils.readConfig(Path.join(cfgPath, 'db'), true)[cfg.type]
-    const ImplDB = await import(`../databases/${cfg.type}.js`)
-    db = new ImplDB.default(dbConfig)
+    db = await getDbByName(cfg.type, Path.resolve('configs', 'db'))
   }
 
   // @block{modelRoutes}:模型生成路由

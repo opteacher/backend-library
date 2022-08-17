@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 // import Path from "path";
 // import { fileURLToPath } from "url";
-import { readConfig } from '../utils/index.js'
+import { readConfig, buildCfgFromPcs } from '../utils/index.js'
 
 export async function getDbByName(name, config) {
-  const ImplDB = await import(`./${name}.js`)
-  return new ImplDB.default(
-    typeof config === 'string' ? readConfig(config, true)[name] : config
+  return new (await import(`./${name}.js`)).default(
+    Object.assign(
+      typeof config === 'string' ? readConfig(config, true)[name] : config,
+      buildCfgFromPcs(
+        ['database', 'username', 'password', 'host', 'port'],
+        'db'
+      )
+    )
   )
 }
 

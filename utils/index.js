@@ -333,8 +333,8 @@ export function buildCfgFromPcs(sections, prefix = '') {
   return Object.fromEntries(
     sections
       .map((cfg) =>
-        process.env[`${prefix}.${cfg}`]
-          ? [cfg, process.env[`${prefix}.${cfg}`]]
+        process.env[`${prefix}_${cfg}`]
+          ? [cfg, process.env[`${prefix}_${cfg}`]]
           : null
       )
       .filter((cfg) => cfg)

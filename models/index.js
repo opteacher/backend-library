@@ -9,6 +9,8 @@ const router = new Router()
 export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
   const cfg =
     typeof mdlConfig === 'string' ? utils.readConfig(mdlConfig) : mdlConfig
+  const mdlSections = ['type', 'version', 'sync', 'init', 'prefix']
+  Object.assign(cfg, utils.buildCfgFromPcs(mdlSections, 'models'))
   if (!db) {
     const cfgPath = Path.resolve('configs')
     const dbConfig = utils.readConfig(Path.join(cfgPath, 'db'), true)[cfg.type]

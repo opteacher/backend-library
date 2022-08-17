@@ -112,9 +112,17 @@ interface SetOptions extends OperOptions {
   expSeconds?: number
 }
 
+export interface DbConfig extends IndexStruct {
+  database: string
+  username: string
+  password: string
+  host: string
+  port: number
+}
+
 export declare function getDbByName(
   name: string,
-  cfgPath: string
+  config: string | DbConfig
 ): Promise<DataBase>
 
 export declare function getAvaDbs(): string[]

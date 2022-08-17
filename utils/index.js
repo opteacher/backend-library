@@ -328,3 +328,15 @@ export async function uploadToQiniu(qnCfgPath, key, readableStream) {
   }
   return Promise.resolve(url)
 }
+
+export function buildCfgFromPcs(sections, prefix = '') {
+  return Object.fromEntries(
+    sections
+      .map((cfg) =>
+        process.env[`${prefix}.${cfg}`]
+          ? [cfg, process.env[`${prefix}.${cfg}`]]
+          : null
+      )
+      .filter((cfg) => cfg)
+  )
+}

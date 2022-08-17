@@ -3,10 +3,11 @@
 // import { fileURLToPath } from "url";
 import { readConfig } from '../utils/index.js'
 
-export async function getDbByName(name, cfgPath) {
-  const config = readConfig(cfgPath, true)[name]
+export async function getDbByName(name, config) {
   const ImplDB = await import(`./${name}.js`)
-  return new ImplDB.default(config)
+  return new ImplDB.default(
+    typeof config === 'string' ? readConfig(config, true)[name] : config
+  )
 }
 
 export function getAvaDbs() {
@@ -80,7 +81,7 @@ export function getPropType(struct, prop) {
   if (!prop) {
     return struct
   }
-  if (prop.indexOf('.') === -1 && (prop in struct)) {
+  if (prop.indexOf('.') === -1 && prop in struct) {
     prop += '.'
   }
   const props = prop.split('.')

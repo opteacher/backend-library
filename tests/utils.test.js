@@ -15,6 +15,7 @@ import {
   getProp,
   setProp,
   readConfig,
+  buildCfgFromPcs,
 } from '../utils/index.js'
 
 describe('# 工具包', () => {
@@ -242,5 +243,24 @@ describe('# 工具包', () => {
         readConfig(Path.resolve('tests', 'configs', 'server'))
       ).toHaveProperty('secret', 'abcd')
     })
+  })
+})
+
+describe('# buildCfgFromPcs', () => {
+  beforeAll(() => {
+    process.env['db.database'] = 'test'
+    process.env['db.username'] = 'root'
+    process.env['db.password'] = '12345'
+    process.env['db.host'] = 'localhost'
+    process.env['db.port'] = 3000
+  })
+
+  test('# 从环境变量导入配置', () => {
+    const config = buildCfgFromPcs(['database', 'username', 'password', 'host', 'port'], 'db')
+    expect(config).toHaveProperty('database', 'test')
+    expect(config).toHaveProperty('username', 'root')
+    expect(config).toHaveProperty('password', '12345')
+    expect(config).toHaveProperty('host', 'localhost')
+    expect(config).toHaveProperty('port', '3000')
   })
 })

@@ -330,13 +330,12 @@ export async function uploadToQiniu(qnCfgPath, key, readableStream) {
 }
 
 export function buildCfgFromPcs(sections, prefix = '') {
-  return Object.fromEntries(
-    sections
-      .map((cfg) =>
-        process.env[`${prefix}.${cfg}`]
-          ? [cfg, process.env[`${prefix}.${cfg}`]]
-          : null
-      )
-      .filter((cfg) => cfg)
-  )
+  const cfgAry = sections
+    .map((cfg) =>
+      process.env[`${prefix}.${cfg}`]
+        ? [cfg, process.env[`${prefix}.${cfg}`]]
+        : null
+    )
+    .filter((cfg) => cfg)
+  return cfgAry.length ? Object.fromEntries(cfgAry) : null
 }

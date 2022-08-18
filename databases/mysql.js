@@ -196,7 +196,8 @@ export default class Mysql {
         delete adjStt[pname].index
       }
       if (typeof prop.default !== 'undefined') {
-        adjStt[pname].defaultValue = prop.default == Date.now ? Sequelize.NOW : prop.default
+        adjStt[pname].defaultValue =
+          prop.default == Date.now ? Sequelize.NOW : prop.default
         delete adjStt[pname].default
       }
     }
@@ -307,7 +308,7 @@ export default class Mysql {
             case '==':
               if (val[1].toLowerCase() === 'null') {
                 conds.where[key] = {
-                  [Op.is]: null
+                  [Op.is]: null,
                 }
               } else {
                 conds.where[key] = {
@@ -318,7 +319,7 @@ export default class Mysql {
             case '!=':
               if (val[1].toLowerCase() === 'null') {
                 conds.where[key] = {
-                  [Op.not]: null
+                  [Op.not]: null,
                 }
               } else {
                 conds.where[key] = {
@@ -520,19 +521,20 @@ export default class Mysql {
       } else {
         const result =
           (await this.select(mdlInf, condition, { selCols: ['id'] })) || []
-        return Promise.all(
-          result.map((entity) =>
-            this.saveOne(mdlInf, entity.id, values, options)
+        if (result.length) {
+          return Promise.all(
+            result.map((entity) =>
+              this.saveOne(mdlInf, entity.id, values, options)
+            )
           )
-        )
+        }
       }
-    } else {
-      return mdlInf.model
-        .build(values)
-        .save()
-        .then((result) => result.toJSON())
-        .catch((err) => getErrContent(err))
     }
+    return mdlInf.model
+      .build(values)
+      .save()
+      .then((result) => result.toJSON())
+      .catch((err) => getErrContent(err))
   }
 
   remove(mdlInf, condition, _options) {

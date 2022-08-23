@@ -198,7 +198,7 @@ export default class Mysql {
       if (typeof prop.default !== 'undefined') {
         if (prop.default == Date.now) {
           adjStt[pname].defaultValue = Sequelize.NOW
-        } else if (prop === this.PropTypes.Array) {
+        } else if (prop === this.PropTypes.Array || prop.type === this.PropTypes.Array) {
           adjStt[pname].defaultValue = prop.default.map(addTypePfx).join(',')
         }
         delete adjStt[pname].default

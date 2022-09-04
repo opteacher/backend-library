@@ -210,8 +210,11 @@ export default class Mysql {
         delete adjStt[pname].index
       }
       if (typeof prop.default !== 'undefined') {
-        adjStt[pname].defaultValue =
-          prop.default == Date.now ? Sequelize.NOW : prop.default
+        if (prop.default == Date.now) {
+          adjStt[pname].defaultValue = Sequelize.NOW
+        } else if (prop === this.PropTypes.Array || prop.type === this.PropTypes.Array) {
+          adjStt[pname].defaultValue = prop.default.map(addTypePfx).join(',')
+        }
         delete adjStt[pname].default
       }
     }

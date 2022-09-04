@@ -166,9 +166,10 @@ export default class Mysql {
       if (foreignKeys.includes(pname)) {
         // 删除外键防止命名冲突
         delete adjStt[pname]
+        continue
       }
       if (prop.type === this.PropTypes.Array) {
-        adjStt[pname].type = this.PropTypes.String
+        adjStt[pname].type = DataTypes.STRING(4096)
         adjStt[pname].get = function () {
           const strAry = this.getDataValue(pname)
           return strAry ? strAry.split(',').map(rmvTypePfx) : []
@@ -178,7 +179,7 @@ export default class Mysql {
         }
       } else if (prop === this.PropTypes.Array) {
         adjStt[pname] = {
-          type: this.PropTypes.String,
+          type: DataTypes.STRING(4096),
           get() {
             const strAry = this.getDataValue(pname)
             return strAry ? strAry.split(',').map(rmvTypePfx) : []
@@ -186,6 +187,19 @@ export default class Mysql {
           set(value) {
             this.setDataValue(pname, value.map(addTypePfx).join(','))
           },
+        }
+      } else if (prop.type === this.PropTypes.Object || prop === this.PropTypes.Object) {
+        adjStt[pname] = {
+          type: DataTypes.STRING(4096),
+          get() {
+            const value = this.getDataValue(pname)
+            return value ? JSON.parse(value) : undefined
+          },
+          set(value) {
+            if (value) {
+              this.setDataValue(pname, JSON.stringify(value))
+            }
+          }
         }
       }
       if (prop.index) {
@@ -488,11 +502,28 @@ export default class Mysql {
                 }
               }
               value.splice(index, 1)
+            } else if (propType === DataTypes.JSON) {
+              const fstPidx = k.indexOf('.')
+              if (fstPidx !== -1) {
+                key = k.substring(0, fstPidx)
+                value = _.cloneDeep(obj[key])
+                setProp(value, k.substring(fstPidx + 1), undefined)
+              } else {
+                value = undefined
+              }
             } else {
               value = undefined
             }
             break
           case 'cover':
+            if (propType === DataTypes.JSON) {
+              const fstPidx = k.indexOf('.')
+              if (fstPidx !== -1) {
+                key = k.substring(0, fstPidx)
+                value = _.cloneDeep(obj[key])
+                setProp(value, k.substring(fstPidx + 1), v)
+              }
+            }
           default:
         }
         setProp(obj, key, value)

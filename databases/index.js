@@ -89,11 +89,14 @@ export function getPropType(struct, prop) {
   if (prop.indexOf('.') === -1 && prop in struct) {
     prop += '.'
   }
+  const fstProp = struct[prop.substring(0, prop.indexOf('.'))]
   const props = prop.split('.')
   for (let i = 0; i < props.length; ++i) {
     const p = props[i]
     if (p === '') {
       continue
+    } else if (!struct) {
+      return fstProp.type || fstProp
     } else if (p.endsWith(']')) {
       const endIdx = p.indexOf('[')
       if (endIdx === -1) {
@@ -102,7 +105,7 @@ export function getPropType(struct, prop) {
       const sub = p.substring(0, endIdx)
       struct = struct[sub]
       // 如果检索的是数组元素，则直接返回数组类型
-      if (struct.length && i !== props.length - 1) {
+      if (struct && struct.length && i !== props.length - 1) {
         struct = struct[0]
       }
     } else {
@@ -110,7 +113,7 @@ export function getPropType(struct, prop) {
     }
   }
   if (!struct) {
-    return
+    return fstProp.type || fstProp
   }
   return struct.type || struct
 }

@@ -13,16 +13,25 @@ describe('# MySQL', () => {
   const record = {
     username: 'abcd',
     password: 'frfrfr',
-    age: 12
+    age: 12,
+    subObj: {
+      asdasd: 'asfsdf',
+      dfsff: 24234,
+      sdgsdgsdg: false,
+      asdwad: ['sdfsdf', 234],
+      dsfsdf: { dsfsdf: 'dsfsdf' },
+    },
   }
   beforeAll(async () => {
     mySqlDB = await getDbByName('mysql', Path.resolve('tests', 'configs', 'db'))
-    User = mySqlDB.defineModel('user',
+    User = mySqlDB.defineModel(
+      'user',
       {
         username: mySqlDB.PropTypes.String,
         password: mySqlDB.PropTypes.String,
         age: mySqlDB.PropTypes.Number,
-        tags: mySqlDB.PropTypes.Array
+        tags: mySqlDB.PropTypes.Array,
+        subObj: mySqlDB.PropTypes.Object,
       },
       {
         router: {
@@ -45,7 +54,7 @@ describe('# MySQL', () => {
     )
     Organ = mySqlDB.defineModel('organ', {
       name: mySqlDB.PropTypes.String,
-      users: [{ type: mySqlDB.PropTypes.Id, ref: 'user' }]
+      users: [{ type: mySqlDB.PropTypes.Id, ref: 'user' }],
     })
     await mySqlDB.sync(User)
     await mySqlDB.sync(Organ)
@@ -58,7 +67,9 @@ describe('# MySQL', () => {
 
     test('# 增db.save()，数据库中应增加一条新纪录', async () => {
       // 新增的用户id不为空
-      expect((await mySqlDB.save(User, record)).id).not.toBe('')
+      const result = await mySqlDB.save(User, record)
+      const user = await mySqlDB.select(User, { _index: result.id })
+      expect(user.id).not.toBe('')
     })
   })
 
@@ -169,7 +180,12 @@ describe('# MySQL', () => {
     })
 
     test('# 改db.save()，删除数组类型字段的元素（用值）', async () => {
-      await mySqlDB.saveOne(User, userID, { tags: 'hhhh' }, { updMode: 'delete' })
+      await mySqlDB.saveOne(
+        User,
+        userID,
+        { tags: 'hhhh' },
+        { updMode: 'delete' }
+      )
       const user = await mySqlDB.select(User, { _index: userID })
       // 删除之后记录数据刷新
       expect(user.tags).not.toContain('hhhh')
@@ -178,10 +194,67 @@ describe('# MySQL', () => {
     test('# 改db.save()，删除数组类型字段的元素（用索引）', async () => {
       let user = await mySqlDB.select(User, { _index: userID })
       const fstEle = user.tags[0]
-      await mySqlDB.saveOne(User, userID, { 'tags[0]': null }, { updMode: 'delete' })
+      await mySqlDB.saveOne(
+        User,
+        userID,
+        { 'tags[0]': null },
+        { updMode: 'delete' }
+      )
       user = await mySqlDB.select(User, { _index: userID })
       // 删除之后记录数据刷新
       expect(user.tags[0]).not.toEqual(fstEle)
+    })
+
+    describe('# 改db.save()，操作对象类型字段', () => {
+      test('# 增加对象类型的字段', async () => {
+        let user = await mySqlDB.select(User, { _index: userID })
+        expect(user.subObj).not.toHaveProperty('test')
+        await mySqlDB.saveOne(User, userID, {
+          subObj: Object.assign(user.subObj, { test: 1234 }),
+        })
+        user = await mySqlDB.select(User, { _index: userID })
+        expect(user.subObj).toHaveProperty('test', 1234)
+      })
+
+      test('# 修改对象类型的字段（普通类型）', async () => {
+        let user = await mySqlDB.select(User, { _index: userID })
+        expect(user.subObj.dfsff).toBe(24234)
+        await mySqlDB.saveOne(User, userID, {
+          'subObj.dfsff': 12345,
+        })
+        user = await mySqlDB.select(User, { _index: userID })
+        expect(user.subObj.dfsff).toBe(12345)
+      })
+
+      test('# 修改对象类型的字段（数组类型）', async () => {
+        let user = await mySqlDB.select(User, { _index: userID })
+        expect(user.subObj.asdwad[0]).toBe('sdfsdf')
+        await mySqlDB.saveOne(User, userID, {
+          'subObj.asdwad[0]': 'abcd',
+        })
+        user = await mySqlDB.select(User, { _index: userID })
+        expect(user.subObj.asdwad[0]).toBe('abcd')
+      })
+
+      test('# 修改对象类型的字段（对象类型）', async () => {
+        let user = await mySqlDB.select(User, { _index: userID })
+        expect(user.subObj.dsfsdf.dsfsdf).toBe('dsfsdf')
+        await mySqlDB.saveOne(User, userID, {
+          'subObj.dsfsdf.dsfsdf': 'abcdef',
+        })
+        user = await mySqlDB.select(User, { _index: userID })
+        expect(user.subObj.dsfsdf.dsfsdf).toBe('abcdef')
+      })
+
+      test('# 删除对象类型的字段', async () => {
+        let user = await mySqlDB.select(User, { _index: userID })
+        expect(user.subObj).toHaveProperty('dsfsdf')
+        await mySqlDB.saveOne(User, userID, {
+          'subObj.dsfsdf': null,
+        }, { updMode: 'delete' })
+        user = await mySqlDB.select(User, { _index: userID })
+        expect(user.subObj).not.toHaveProperty('dsfsdf')
+      })
     })
 
     describe('# 改db.save()，修改多记录', () => {
@@ -228,7 +301,11 @@ describe('# MySQL', () => {
     })
 
     test('# 查db.select()，指定列', async () => {
-      user = await mySqlDB.select(User, { _index: user.id }, { selCols: ['age'] })
+      user = await mySqlDB.select(
+        User,
+        { _index: user.id },
+        { selCols: ['age'] }
+      )
       expect(() => user).not.toHaveProperty('username')
     })
 
@@ -302,7 +379,7 @@ describe('# MySQL', () => {
         { updMode: 'append' }
       )
       const organ = await mySqlDB.select(Organ, { _index }, { ext: true })
-      expect(organ.users.map(user => user.id)).toContain(user.id)
+      expect(organ.users.map((user) => user.id)).toContain(user.id)
     })
   })
 
@@ -311,7 +388,7 @@ describe('# MySQL', () => {
       try {
         await mySqlDB.sync(User)
         await mySqlDB.dump(User, dataFile)
-      } catch(e) {
+      } catch (e) {
         console.log(JSON.stringify(e))
       }
     })

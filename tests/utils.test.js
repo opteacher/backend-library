@@ -248,11 +248,11 @@ describe('# 工具包', () => {
 
 describe('# buildCfgFromPcs', () => {
   beforeAll(() => {
-    process.env['db.database'] = 'test'
-    process.env['db.username'] = 'root'
-    process.env['db.password'] = '12345'
-    process.env['db.host'] = 'localhost'
-    process.env['db.port'] = 3000
+    process.env['db_database'] = 'test'
+    process.env['db_username'] = 'root'
+    process.env['db_password'] = '12345'
+    process.env['db_host'] = 'localhost'
+    process.env['db_port'] = 3000
   })
 
   test('# 从环境变量导入配置', () => {

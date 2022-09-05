@@ -86,10 +86,18 @@ export function getPropType(struct, prop) {
   if (!prop) {
     return struct
   }
-  if (prop.indexOf('.') === -1 && prop in struct) {
-    prop += '.'
+  if (prop.indexOf('.') === -1) {
+    if (prop in struct) {
+      prop += '.'
+    } else {
+      return
+    }
   }
-  const fstProp = struct[prop.substring(0, prop.indexOf('.'))]
+  const fstPkey = prop.substring(0, prop.indexOf('.'))
+  if (!(fstPkey in struct)) {
+    return
+  }
+  const fstProp = struct[fstPkey]
   const props = prop.split('.')
   for (let i = 0; i < props.length; ++i) {
     const p = props[i]

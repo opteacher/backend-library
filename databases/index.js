@@ -86,14 +86,20 @@ export function getPropType(struct, prop) {
   if (!prop) {
     return struct
   }
-  if (prop.indexOf('.') === -1) {
+  const poiIdx = prop.indexOf('.')
+  const sqbIdx = prop.indexOf('[')
+  let fstPkey = ''
+  if (poiIdx === -1 && sqbIdx === -1) {
     if (prop in struct) {
-      prop += '.'
+      fstPkey = prop
     } else {
       return
     }
+  } else if (poiIdx !== -1) {
+    fstPkey = prop.substring(0, poiIdx)
+  } else if (sqbIdx !== -1) {
+    fstPkey = prop.substring(0, sqbIdx)
   }
-  const fstPkey = prop.substring(0, prop.indexOf('.'))
   if (!(fstPkey in struct)) {
     return
   }

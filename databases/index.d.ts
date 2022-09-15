@@ -7,6 +7,7 @@ type Process = 'before' | 'doing' | 'after'
 type Type =
   | 'Id'
   | 'String'
+  | 'LongStr'
   | 'Number'
   | 'Date'
   | 'Boolean'

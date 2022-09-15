@@ -22,6 +22,7 @@ export default class Mongo {
     this.PropTypes = {
       Id: mongoose.Types.ObjectId,
       String: String,
+      LongStr: String,
       Number: Number,
       DateTime: Date,
       Boolean: Boolean,

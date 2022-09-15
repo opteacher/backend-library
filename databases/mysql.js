@@ -23,6 +23,7 @@ export default class Mysql {
     this.PropTypes = {
       Id: DataTypes.UUID,
       String: DataTypes.STRING,
+      LongStr: DataTypes.STRING(4096),
       Number: DataTypes.INTEGER,
       DateTime: DataTypes.DATE,
       Boolean: DataTypes.BOOLEAN,
@@ -349,6 +350,10 @@ export default class Mysql {
                 [Op.in]: val[1],
               }
               break
+          }
+        } else if (val === 'null') {
+          conds.where[key] = {
+            [Op.is]: null,
           }
         }
       }

@@ -288,8 +288,14 @@ describe('# MySQL', () => {
       )
     })
 
-    test('# 查db.select()，全查', async () => {
-      expect((await mySqlDB.select(User)).length).toBeGreaterThanOrEqual(1)
+    describe('# 查db.select()，全查', () => {
+      test('# 全查', async () => {
+        expect((await mySqlDB.select(User)).length).toBeGreaterThanOrEqual(1)
+      })
+
+      test('# 模糊查询', async () => {
+        expect(await mySqlDB.select(User, { password: ['like', 'fr%'] })).toHaveProperty('length', 3)
+      })
     })
 
     test('# 查db.select()，排序', async () => {

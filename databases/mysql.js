@@ -263,6 +263,70 @@ export default class Mysql {
     return this.models[name]
   }
 
+  adjConds(conds) {
+    for (const [key, val] of Object.entries(conds.where)) {
+      if (val instanceof Array) {
+        switch (val[0]) {
+          case '<':
+            conds.where[key] = {
+              [Op.lt]: val[1],
+            }
+            break
+          case '>':
+            conds.where[key] = {
+              [Op.gt]: val[1],
+            }
+            break
+          case '<=':
+            conds.where[key] = {
+              [Op.lte]: val[1],
+            }
+            break
+          case '>=':
+            conds.where[key] = {
+              [Op.gte]: val[1],
+            }
+            break
+          case '==':
+            if (val[1].toLowerCase() === 'null') {
+              conds.where[key] = {
+                [Op.is]: null,
+              }
+            } else {
+              conds.where[key] = {
+                [Op.eq]: val[1],
+              }
+            }
+            break
+          case '!=':
+            if (val[1].toLowerCase() === 'null') {
+              conds.where[key] = {
+                [Op.not]: null,
+              }
+            } else {
+              conds.where[key] = {
+                [Op.ne]: val[1],
+              }
+            }
+            break
+          case 'in':
+            conds.where[key] = {
+              [Op.in]: val[1],
+            }
+            break
+          case 'like':
+            conds.where[key] = {
+              [Op.like]: val[1]
+            }
+        }
+      } else if (val === 'null') {
+        conds.where[key] = {
+          [Op.is]: null,
+        }
+      }
+    }
+  }
+
   select(mdlInf, condition, options) {
     if (!options) {
       options = {}
@@ -300,63 +364,7 @@ export default class Mysql {
       }
 
       // 条件选择，目前只支持一个属性一个条件
-      for (const [key, val] of Object.entries(conds.where)) {
-        if (val instanceof Array) {
-          switch (val[0]) {
-            case '<':
-              conds.where[key] = {
-                [Op.lt]: val[1],
-              }
-              break
-            case '>':
-              conds.where[key] = {
-                [Op.gt]: val[1],
-              }
-              break
-            case '<=':
-              conds.where[key] = {
-                [Op.lte]: val[1],
-              }
-              break
-            case '>=':
-              conds.where[key] = {
-                [Op.gte]: val[1],
-              }
-              break
-            case '==':
-              if (val[1].toLowerCase() === 'null') {
-                conds.where[key] = {
-                  [Op.is]: null,
-                }
-              } else {
-                conds.where[key] = {
-                  [Op.eq]: val[1],
-                }
-              }
-              break
-            case '!=':
-              if (val[1].toLowerCase() === 'null') {
-                conds.where[key] = {
-                  [Op.not]: null,
-                }
-              } else {
-                conds.where[key] = {
-                  [Op.ne]: val[1],
-                }
-              }
-              break
-            case 'in':
-              conds.where[key] = {
-                [Op.in]: val[1],
-              }
-              break
-          }
-        } else if (val === 'null') {
-          conds.where[key] = {
-            [Op.is]: null,
-          }
-        }
-      }
+      this.adjConds(conds)
     }
     if (options.selCols) {
       conds['attributes'] = options.selCols
@@ -590,8 +598,8 @@ export default class Mysql {
     return mdlInf.model.sync({ force: true })
   }
 
-  count(mdlInf) {
-    return mdlInf.model.count()
+  count(mdlInf, condition) {
+    return mdlInf.model.count({ where: condition })
   }
 
   max(mdlInf, column) {

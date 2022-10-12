@@ -94,7 +94,7 @@ declare class DataBase {
     options?: DeleteOptions
   ): Promise<number>
   sync(mdlInf: MdlInf): Promise<void>
-  count(mdlInf: MdlInf): Promise<number>
+  count(mdlInf: MdlInf, condition?: any): Promise<number>
   max(
     mdlInf: MdlInf,
     prop: string,

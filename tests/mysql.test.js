@@ -294,7 +294,10 @@ describe('# MySQL', () => {
       })
 
       test('# 模糊查询', async () => {
-        expect(await mySqlDB.select(User, { password: ['like', 'fr%'] })).toHaveProperty('length', 3)
+        const result = await mySqlDB.select(User, { password: ['like', 'fr%'] })
+        expect(result).toHaveProperty('length', 3)
+        expect(result.every(usr => usr.password.startsWith('fr'))).toBeTruthy()
+
       })
     })
 

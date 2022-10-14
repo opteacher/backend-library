@@ -318,6 +318,7 @@ export default class Mysql {
             conds.where[key] = {
               [Op.like]: val[1]
             }
+            break
         }
       } else if (val === 'null') {
         conds.where[key] = {
@@ -599,7 +600,9 @@ export default class Mysql {
   }
 
   count(mdlInf, condition) {
-    return mdlInf.model.count({ where: condition })
+    const conds = { where: condition }
+    this.adjConds(conds)
+    return mdlInf.model.count(conds)
   }
 
   max(mdlInf, column) {

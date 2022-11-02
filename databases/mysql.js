@@ -311,7 +311,7 @@ export default class Mysql {
             break
           case 'in':
             conds.where[key] = {
-              [Op.in]: val[1],
+              [Op.in]: val[1] instanceof Array ? val[1] : val.slice(1)
             }
             break
           case 'like':
@@ -388,6 +388,7 @@ export default class Mysql {
         .then((res) => (res && options.raw ? res.toJSON() : res))
         .catch((err) => getErrContent(err))
     } else {
+      console.log(conds)
       return mdlInf.model
         .findAll(conds)
         .then((ress) => ress.filter((res) => res))

@@ -163,7 +163,7 @@ export default class Mongo {
             })
             break
           case 'doing':
-            console.warn('mongoose不支持doing中间件')
+            // console.warn('mongoose不支持doing中间件')
             break
           case 'after':
             schema.post(self.Middles[obs], func)

@@ -95,10 +95,13 @@ export function getPropType(struct, prop) {
     } else {
       return
     }
-  } else if (poiIdx !== -1) {
-    fstPkey = prop.substring(0, poiIdx)
-  } else if (sqbIdx !== -1) {
-    fstPkey = prop.substring(0, sqbIdx)
+  } else {
+    if (poiIdx !== -1) {
+      fstPkey = prop.substring(0, poiIdx)
+    }
+    if (sqbIdx !== -1 && !(fstPkey in struct)) {
+      fstPkey = prop.substring(0, sqbIdx)
+    }
   }
   if (!(fstPkey in struct)) {
     return

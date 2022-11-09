@@ -388,7 +388,6 @@ export default class Mysql {
         .then((res) => (res && options.raw ? res.toJSON() : res))
         .catch((err) => getErrContent(err))
     } else {
-      console.log(conds)
       return mdlInf.model
         .findAll(conds)
         .then((ress) => ress.filter((res) => res))
@@ -601,7 +600,7 @@ export default class Mysql {
   }
 
   count(mdlInf, condition) {
-    const conds = { where: condition }
+    const conds = { where: condition || {} }
     this.adjConds(conds)
     return mdlInf.model.count(conds)
   }

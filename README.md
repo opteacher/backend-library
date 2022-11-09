@@ -101,7 +101,6 @@ const router = await genApiRoutes(
   Path.resolve('routes')
 )
 const models = (await genMdlRoutes(
-  db,
   Path.resolve('models'),
   Path.resolve('configs', 'models')
 )).router
@@ -119,7 +118,7 @@ const mdlCfgPath = Path.resolve(cfgPath, "models");
 const dbCfgPath = Path.resolve(cfgPath, "db");
 
 export function getDatabase() {
-	return getDbByName(readConfig(mdlCfgPath).type, dbCfgPath);
+  return getDbByName(readConfig(mdlCfgPath).type, dbCfgPath);
 }
 ```
 
@@ -149,40 +148,40 @@ const db = await getDatabase();
 const svrCfg = getServerInfo();
 
 export default db.defineModel(
-	{
-		__modelName: "user", // 模型名
-		// 以下为字段，可用类型有
-		// Id: 项ID类型，可看作rowid
-		// String: 字符串
-		// Number: 数字
-		// Date: 日期
-		// Boolean: 布尔
-		// Array: 数组
-		// Object: 对象
-		username: db.PropTypes.String,
-		password: db.PropTypes.String,
-		phone: db.PropTypes.String,
-		avatar: db.PropTypes.String,
-	},
-	{
-		// 可定义中间件，用于介入数据库操作的前、中、后
-		middle: {
-			create: {
-				before(doc: any) {
-					// 此处介入数据库create操作之前，对传入的password做不可逆的sha256加密
-					if (doc.password.length !== 64) {
-						doc.password = createHmac("sha256", svrCfg.secret)
-							.update(doc.password)
-							.digest("hex");
-					}
-				},
-			},
-		},
-		// 生成的模型路由，对应增删改查为：POST/DELETE/PUT/GET
-		router: {
-			methods: ["POST", "DELETE", "PUT", "GET"],
-		},
-	}
+  {
+    __modelName: "user", // 模型名
+    // 以下为字段，可用类型有
+    // Id: 项ID类型，可看作rowid
+    // String: 字符串
+    // Number: 数字
+    // Date: 日期
+    // Boolean: 布尔
+    // Array: 数组
+    // Object: 对象
+    username: db.PropTypes.String,
+    password: db.PropTypes.String,
+    phone: db.PropTypes.String,
+    avatar: db.PropTypes.String,
+  },
+  {
+    // 可定义中间件，用于介入数据库操作的前、中、后
+    middle: {
+      create: {
+        before(doc: any) {
+          // 此处介入数据库create操作之前，对传入的password做不可逆的sha256加密
+          if (doc.password.length !== 64) {
+            doc.password = createHmac("sha256", svrCfg.secret)
+              .update(doc.password)
+              .digest("hex");
+          }
+        },
+      },
+    },
+    // 生成的模型路由，对应增删改查为：POST/DELETE/PUT/GET
+    router: {
+      methods: ["POST", "DELETE", "PUT", "GET"],
+    },
+  }
 );
 ```
 
@@ -220,15 +219,15 @@ import Router from "koa-router";
 const router = new Router();
 
 router.get("/", (ctx) => {
-	ctx.body = {
-		result: "Hello world",
-	};
+  ctx.body = {
+    result: "Hello world",
+  };
 });
 
 router.get("/:yourName", (ctx) => {
-	ctx.body = {
-		result: `Hello world ${ctx.request.params.yourName}`,
-	};
+  ctx.body = {
+    result: `Hello world ${ctx.request.params.yourName}`,
+  };
 });
 
 export default router;

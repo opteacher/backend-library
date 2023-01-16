@@ -400,8 +400,10 @@ export default class Mysql {
   exec(sql, params, options) {
     return this.connect().query(
       sql,
-      { replacements: params },
-      (options && options.type) || Sequelize.QueryTypes.SELECT
+      Object.assign({
+        replacements: params,
+        type: Sequelize.QueryTypes.SELECT
+      }, options)
     )
   }
 

@@ -23,7 +23,7 @@ export default class Mysql {
     this.PropTypes = {
       Id: DataTypes.UUID,
       String: DataTypes.STRING,
-      LongStr: DataTypes.STRING(4096),
+      LongStr: DataTypes.TEXT('long'),
       Number: DataTypes.INTEGER,
       DateTime: DataTypes.DATE,
       Boolean: DataTypes.BOOLEAN,

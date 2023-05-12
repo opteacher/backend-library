@@ -80,7 +80,11 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
           router.get(GetUrl, async (ctx) => {
             if (ctx.params.index.toLocaleLowerCase() === 's') {
               ctx.body = {
-                data: await db.select(minfo, ctx.request.query),
+                data: await db.select(
+                  minfo,
+                  ctx.request.query,
+                  ctx.request.query._ext ? { ext: true } : undefined
+                )
               }
             } else {
               const data = await db.select(

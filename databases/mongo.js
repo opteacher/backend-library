@@ -128,6 +128,13 @@ export default class Mongo {
     const types = Object.values(self.PropTypes)
     const pkgSubProp = (subStt) => {
       for (const [prop, val] of Object.entries(subStt)) {
+        if (value === self.PropTypes.DateTime) {
+          subStt[prop] = {
+            type: self.PropTypes.DateTime,
+            default: () => new Date(0) // 日期时间默认尾1970/01/01，此日期为无效
+          }
+          continue
+        }
         const isAry = val instanceof Array && val.length === 1
         let value = val
         if (isAry) {

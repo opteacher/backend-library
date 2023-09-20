@@ -110,7 +110,7 @@ export function copyDir(src, dest, options) {
   // console.log("src:" + src + ", dest:" + dest);
   // 拷贝新的内容进去
   fs.readdirSync(src).forEach(function (item) {
-    if (options.ignores.includes(item)) {
+    if (options.ignores.includes(path.join(src, item))) {
       return
     }
     const item_path = path.join(src, item)

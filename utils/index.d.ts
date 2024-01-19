@@ -21,6 +21,8 @@ export declare function getErrContent(err: any): string
 
 export declare function fixStartsWith(text: string, prefix: string): string
 
+export declare function endsWith(text: string, suffix: string): boolean
+
 export declare function fixEndsWith(text: string, suffix: string): string
 
 export declare function rmvStartsOf(text: string, prefix: string): string

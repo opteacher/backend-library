@@ -145,6 +145,10 @@ export function fixEndsWith(text, suffix) {
   )
 }
 
+export function endsWith(text, suffix) {
+  return text.trimEnd().endsWith(suffix)
+}
+
 export function rmvStartsOf(text, prefix) {
   return text.substring(0, prefix.length) === prefix
     ? text.substring(prefix.length)

@@ -128,7 +128,10 @@ export function copyDir(src, dest, options) {
 }
 
 export function readConfig(cfgFile, withEnv = false) {
-  const env = withEnv && process.env.NODE_ENV ? `.${process.env.NODE_ENV}` : ''
+  let env = ''
+  if (withEnv) {
+    env = '.' + (typeof withEnv === 'string' ? withEnv : process.env.NODE_ENV)
+  }
   return toml.parse(
     fs.readFileSync(`${cfgFile}${env}.toml`, { encoding: 'utf8' })
   )

@@ -15,7 +15,7 @@ export declare function copyDir(
   }
 ): void
 
-export declare function readConfig(cfgFile: string, withEnv?: boolean): any
+export declare function readConfig(cfgFile: string, withEnv?: boolean | string): any
 
 export declare function getErrContent(err: any): string
 

@@ -64,12 +64,12 @@ export default class Mongo {
     return Promise.resolve(
       mongoose.connect(
         [
-          'mongodb://',
+          this.config.url && this.config.url.startsWith('mongodb://') ? '' : 'mongodb://',
           this.config.username ? `${this.config.username}:` : '',
           this.config.password ? `${this.config.password}@` : '',
-          `${this.config.host}:`,
-          `${this.config.port}/`,
-          `${this.config.database}?authSource=admin`,
+          this.config.url ? this.config.url : `${this.config.host}:${this.config.port}`,
+          this.config.database ? `/${this.config.database}` : '',
+          '?authSource=admin'
         ].join(''),
         {
           useNewUrlParser: true,

@@ -69,11 +69,12 @@ export default class Mongo {
           this.config.password ? `${this.config.password}@` : '',
           this.config.url ? this.config.url : `${this.config.host}:${this.config.port}`,
           this.config.database ? `/${this.config.database}` : '',
-          '?authSource=admin'
+          '?useUnifiedTopology=true'
         ].join(''),
         {
           useNewUrlParser: true,
           keepAlive: false,
+          authSource: 'admin'
         }
       )
     )

@@ -129,7 +129,7 @@ export function copyDir(src, dest, options) {
 
 export function readConfig(cfgFile, withEnv = false) {
   let env = ''
-  if (withEnv) {
+  if (withEnv && process.env.NODE_ENV) {
     env = '.' + (typeof withEnv === 'string' ? withEnv : process.env.NODE_ENV)
   }
   return toml.parse(

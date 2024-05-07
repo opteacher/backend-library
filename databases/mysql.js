@@ -54,7 +54,7 @@ export default class Mysql {
         value = val[0]
       }
       if (value.ref) {
-        ret[key].ref = value.ref
+        ret[key] = { ref: value.ref }
         if (typeof value.belong === 'undefined') {
           ret[key].belong = !ret[key].array
         } else {

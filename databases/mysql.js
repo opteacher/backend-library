@@ -553,6 +553,7 @@ export default class Mysql {
         return ret
       })
     } catch (error) {
+      console.error(error.stack)
       return getErrContent(error)
     }
   }

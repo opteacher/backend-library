@@ -421,10 +421,11 @@ export default class Mysql {
       const refKeys = Object.keys(refs)
       let obj = null
       if (refKeys.length) {
+        const models = this.models
         const res = await mdlInf.model.findAll({
           where: { id },
           include: Object.values(refs).map((table) => ({
-            model: this.models[table.ref].model,
+            model: models[table.ref].model,
           })),
         })
         obj = res[0]

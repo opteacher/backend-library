@@ -79,11 +79,13 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
           // @steps{3_3_2_1}:*GET*：根据id查找，**会联表**
           router.get(GetUrl, async (ctx) => {
             if (ctx.params.index.toLocaleLowerCase() === 's') {
+              const ext = ctx.request.query._ext
+              delete ctx.request.query._ext
               ctx.body = {
                 data: await db.select(
                   minfo,
                   ctx.request.query,
-                  ctx.request.query._ext ? { ext: true } : undefined
+                  ext ? { ext: true } : undefined
                 )
               }
             } else {

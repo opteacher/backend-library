@@ -440,7 +440,7 @@ export default class Mysql {
       for (const [k, v] of Object.entries(values)) {
         if (refKeys.includes(k)) {
           const refInf = refs[k]
-          const key = _.capitalize(_.camelCase(k))
+          const key = _.capitalize(_.camelCase(refInf.ref))
           const refMdl = this.models[refInf.ref]
           if (!refInf.array) {
             if (updMode !== 'delete') {

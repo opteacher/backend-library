@@ -30,7 +30,7 @@ export default class Mysql {
       Decimal: DataTypes.DECIMAL(64, 20),
       Array: DataTypes.ARRAY,
       Object: DataTypes.JSON,
-      Any: DataTypes.BLOB,
+      Any: DataTypes.BLOB
     }
     this.Middles = {
       select: '',
@@ -40,7 +40,7 @@ export default class Mysql {
       delete: 'destroy',
       valid: 'validation',
       before: 'before',
-      after: 'after',
+      after: 'after'
     }
     this.connect()
   }
@@ -84,8 +84,8 @@ export default class Mysql {
             max: 5,
             min: 0,
             acquire: 30000,
-            idle: 10000,
-          },
+            idle: 10000
+          }
         }
       )
     }
@@ -122,10 +122,10 @@ export default class Mysql {
     if (!options.operate) {
       options.operate = {}
     }
-    const setOperate = (name) => {
+    const setOperate = name => {
       if (!options.operate[name]) {
         options.operate[name] = {
-          columns: Object.keys(struct),
+          columns: Object.keys(struct)
         }
       }
     }
@@ -134,7 +134,7 @@ export default class Mysql {
     setOperate('create')
     setOperate('delete')
     const adjStt = _.cloneDeep(struct)
-    const addTypePfx = (value) => {
+    const addTypePfx = value => {
       if (typeof value === 'number') {
         if (Math.floor(value) === value) {
           return `n${value}`
@@ -147,7 +147,7 @@ export default class Mysql {
         return `s${value}`
       }
     }
-    const rmvTypePfx = (text) => {
+    const rmvTypePfx = text => {
       switch (text[0]) {
         case 'n':
           return parseInt(text.substring(1))
@@ -187,7 +187,7 @@ export default class Mysql {
           },
           set(value) {
             this.setDataValue(pname, value.map(addTypePfx).join(','))
-          },
+          }
         }
       } else if (prop.type === this.PropTypes.Object || prop === this.PropTypes.Object) {
         adjStt[pname] = {
@@ -251,14 +251,14 @@ export default class Mysql {
       // @_@: 存在模型前后加载问题，所关联表可能还未注册到模型表中
       model[func](this.models[table.ref].model, {
         foreignKey: prop,
-        constraints: false,
+        constraints: false
       })
     }
     this.models[name] = {
       model,
       name,
       struct,
-      options,
+      options
     }
     return this.models[name]
   }
@@ -269,43 +269,43 @@ export default class Mysql {
         switch (val[0]) {
           case '<':
             conds.where[key] = {
-              [Op.lt]: val[1],
+              [Op.lt]: val[1]
             }
             break
           case '>':
             conds.where[key] = {
-              [Op.gt]: val[1],
+              [Op.gt]: val[1]
             }
             break
           case '<=':
             conds.where[key] = {
-              [Op.lte]: val[1],
+              [Op.lte]: val[1]
             }
             break
           case '>=':
             conds.where[key] = {
-              [Op.gte]: val[1],
+              [Op.gte]: val[1]
             }
             break
           case '==':
             if (val[1].toLowerCase() === 'null') {
               conds.where[key] = {
-                [Op.is]: null,
+                [Op.is]: null
               }
             } else {
               conds.where[key] = {
-                [Op.eq]: val[1],
+                [Op.eq]: val[1]
               }
             }
             break
           case '!=':
             if (val[1].toLowerCase() === 'null') {
               conds.where[key] = {
-                [Op.not]: null,
+                [Op.not]: null
               }
             } else {
               conds.where[key] = {
-                [Op.ne]: val[1],
+                [Op.ne]: val[1]
               }
             }
             break
@@ -322,7 +322,7 @@ export default class Mysql {
         }
       } else if (val === 'null') {
         conds.where[key] = {
-          [Op.is]: null,
+          [Op.is]: null
         }
       }
     }
@@ -349,9 +349,10 @@ export default class Mysql {
 
       conds['where'] = condition
       if (condition.order_by) {
-        conds.order = Object.entries(condition.order_by).map(
-          ([prop, order]) => [prop, order.toUpperCase()]
-        )
+        conds.order = Object.entries(condition.order_by).map(([prop, order]) => [
+          prop,
+          order.toUpperCase()
+        ])
         delete condition.order_by
         delete conds.where.order_by
       }
@@ -377,7 +378,7 @@ export default class Mysql {
       const refs = Mysql.getRefCollection(mdlInf.struct)
       if (Object.keys(refs).length) {
         conds.include = []
-        Object.values(refs).forEach((table) => {
+        Object.values(refs).forEach(table => {
           conds.include.push({ model: this.models[table.ref].model })
         })
       }
@@ -385,25 +386,28 @@ export default class Mysql {
     if (index !== -1 && !conds.include) {
       return mdlInf.model
         .findByPk(index)
-        .then((res) => (res && options.raw ? res.toJSON() : res))
-        .catch((err) => getErrContent(err))
+        .then(res => (res && options.raw ? res.toJSON() : res))
+        .catch(err => getErrContent(err))
     } else {
       return mdlInf.model
         .findAll(conds)
-        .then((ress) => ress.filter((res) => res))
-        .then((ress) => (options.raw ? ress.map((res) => res.toJSON()) : ress))
-        .then((ress) => (index !== -1 ? ress[0] : ress))
-        .catch((err) => getErrContent(err))
+        .then(ress => ress.filter(res => res))
+        .then(ress => (options.raw ? ress.map(res => res.toJSON()) : ress))
+        .then(ress => (index !== -1 ? ress[0] : ress))
+        .catch(err => getErrContent(err))
     }
   }
 
   exec(sql, params, options) {
     return this.connect().query(
       sql,
-      Object.assign({
-        replacements: params,
-        type: Sequelize.QueryTypes.SELECT
-      }, options)
+      Object.assign(
+        {
+          replacements: params,
+          type: Sequelize.QueryTypes.SELECT
+        },
+        options
+      )
     )
   }
 
@@ -416,147 +420,137 @@ export default class Mysql {
     }
     const updMode = options.updMode.toLowerCase()
 
-    try {
-      const refs = Mysql.getRefCollection(mdlInf.struct)
-      const refKeys = Object.keys(refs)
-      let obj = null
-      if (refKeys.length) {
-        const models = this.models
-        const res = await mdlInf.model.findAll({
-          where: { id },
-          include: Object.values(refs).map((table) => ({
-            model: models[table.ref].model,
-          })),
-        })
-        obj = res[0]
-      } else {
-        obj = await mdlInf.model.findByPk(id)
-      }
-      // 1. A表的外键b: { type: DataTypes.ID, ref: 'B', belong: true }。则有A.belongsTo(B, { foreignKey: 'b' })
-      // 2. A表的外键b: { type: DataTypes.ID, ref: 'B', belong: false }。则有A.hasOne(B, { foreignKey: 'b' })
-      // 3. A表的外键bs: [{ type: DataTypes.ID, ref: 'B', belong: true }]。【不支持】
-      // 4. A表的外键bs: [{ type: DataTypes.ID, ref: 'B', belong: false }]。则有A.hasMany(B, { foreignKey: 'bs' })
-      // * 注意：不带belong参数时，默认以2和4关联
-      for (const [k, v] of Object.entries(values)) {
-        if (refKeys.includes(k)) {
-          const refInf = refs[k]
-          const key = _.capitalize(_.camelCase(refInf.ref))
-          const refMdl = this.models[refInf.ref]
-          if (!refInf.array) {
-            if (updMode !== 'delete') {
-              await obj[`set${key}`](await refMdl.model.findByPk(v))
-            } else {
-              await obj[`set${key}`](null)
-            }
+    const refs = Mysql.getRefCollection(mdlInf.struct)
+    const refKeys = Object.keys(refs)
+    let obj = null
+    if (refKeys.length) {
+      const models = this.models
+      const res = await mdlInf.model.findAll({
+        where: { id },
+        include: Object.values(refs).map(table => ({
+          model: models[table.ref].model
+        }))
+      })
+      obj = res[0]
+    } else {
+      obj = await mdlInf.model.findByPk(id)
+    }
+    // 1. A表的外键b: { type: DataTypes.ID, ref: 'B', belong: true }。则有A.belongsTo(B, { foreignKey: 'b' })
+    // 2. A表的外键b: { type: DataTypes.ID, ref: 'B', belong: false }。则有A.hasOne(B, { foreignKey: 'b' })
+    // 3. A表的外键bs: [{ type: DataTypes.ID, ref: 'B', belong: true }]。【不支持】
+    // 4. A表的外键bs: [{ type: DataTypes.ID, ref: 'B', belong: false }]。则有A.hasMany(B, { foreignKey: 'bs' })
+    // * 注意：不带belong参数时，默认以2和4关联
+    for (const [k, v] of Object.entries(values)) {
+      if (refKeys.includes(k)) {
+        const refInf = refs[k]
+        const key = _.capitalize(_.camelCase(refInf.ref))
+        const refMdl = this.models[refInf.ref]
+        if (!refInf.array) {
+          if (updMode !== 'delete') {
+            await obj[`set${key}`](await refMdl.model.findByPk(v))
           } else {
-            const value = !(v instanceof Array) ? [v] : v
-            switch (updMode) {
-              case 'append':
-                for (const sv of value) {
-                  const record = await refMdl.model.findByPk(sv)
-                  await obj[`add${_.singularize(key)}`](record)
-                }
-                break
-              case 'delete':
-                for (const sv of value) {
-                  const record = await refMdl.model.findByPk(sv)
-                  await obj[`remove${_.singularize(key)}`](record)
-                }
-                break
-              case 'cover':
-              default:
-                const records = await Promise.all(
-                  value.map((sv) => refMdl.model.findByPk(sv))
-                )
-                await obj[`set${key}`](records)
-                break
-            }
+            await obj[`set${key}`](null)
           }
-          continue
+        } else {
+          const value = !(v instanceof Array) ? [v] : v
+          switch (updMode) {
+            case 'append':
+              for (const sv of value) {
+                const record = await refMdl.model.findByPk(sv)
+                await obj[`add${_.singularize(key)}`](record)
+              }
+              break
+            case 'delete':
+              for (const sv of value) {
+                const record = await refMdl.model.findByPk(sv)
+                await obj[`remove${_.singularize(key)}`](record)
+              }
+              break
+            case 'cover':
+            default:
+              const records = await Promise.all(value.map(sv => refMdl.model.findByPk(sv)))
+              await obj[`set${key}`](records)
+              break
+          }
         }
-        const propType = getPropType(mdlInf.struct, k)
-        let key = k
-        let value = v
-        switch (updMode) {
-          case 'append':
-            if (
-              propType === DataTypes.STRING ||
-              propType == DataTypes.INTEGER ||
-              propType === DataTypes.DECIMAL
-            ) {
-              value = getProp(obj, key) + v
-            } else if (propType == DataTypes.ARRAY) {
-              value = getProp(obj, key).concat(v)
-            }
-            break
-          case 'delete':
-            if (propType === DataTypes.STRING) {
-              value = ''
-            } else if (
-              propType == DataTypes.INTEGER ||
-              propType === DataTypes.DECIMAL
-            ) {
-              value = 0
-            } else if (propType == DataTypes.ARRAY) {
-              let index = -1
-              const lstIdx = key.lastIndexOf('[')
-              if (lstIdx === -1) {
-                value = getProp(obj, key)
-                index = value.indexOf(v)
-              } else {
-                value = getProp(obj, key.substring(0, lstIdx))
-                const idxKey = key.substring(lstIdx)
-                key = key.substring(0, lstIdx)
-                if (idxKey.endsWith('}]')) {
-                  const res = /^\[\{(\w+):(\"?\w+\"?)\}\]$/.exec(idxKey)
-                  if (!res || res.length < 3) {
-                    throw new Error()
-                  }
-                  index = value.findIndex((itm) => itm[res[1]] == res[2])
-                } else {
-                  const res = /^\[(\d+)\]$/.exec(idxKey)
-                  if (!res || res.length < 2) {
-                    throw new Error()
-                  }
-                  index = parseInt(res[1])
+        continue
+      }
+      const propType = getPropType(mdlInf.struct, k)
+      let key = k
+      let value = v
+      switch (updMode) {
+        case 'append':
+          if (
+            propType === DataTypes.STRING ||
+            propType == DataTypes.INTEGER ||
+            propType === DataTypes.DECIMAL
+          ) {
+            value = getProp(obj, key) + v
+          } else if (propType == DataTypes.ARRAY) {
+            value = getProp(obj, key).concat(v)
+          }
+          break
+        case 'delete':
+          if (propType === DataTypes.STRING) {
+            value = ''
+          } else if (propType == DataTypes.INTEGER || propType === DataTypes.DECIMAL) {
+            value = 0
+          } else if (propType == DataTypes.ARRAY) {
+            let index = -1
+            const lstIdx = key.lastIndexOf('[')
+            if (lstIdx === -1) {
+              value = getProp(obj, key)
+              index = value.indexOf(v)
+            } else {
+              value = getProp(obj, key.substring(0, lstIdx))
+              const idxKey = key.substring(lstIdx)
+              key = key.substring(0, lstIdx)
+              if (idxKey.endsWith('}]')) {
+                const res = /^\[\{(\w+):(\"?\w+\"?)\}\]$/.exec(idxKey)
+                if (!res || res.length < 3) {
+                  throw new Error()
                 }
-              }
-              value.splice(index, 1)
-            } else if (propType === DataTypes.JSON) {
-              const fstPidx = k.indexOf('.')
-              if (fstPidx !== -1) {
-                key = k.substring(0, fstPidx)
-                value = _.cloneDeep(obj[key])
-                setProp(value, k.substring(fstPidx + 1), undefined)
+                index = value.findIndex(itm => itm[res[1]] == res[2])
               } else {
-                value = undefined
+                const res = /^\[(\d+)\]$/.exec(idxKey)
+                if (!res || res.length < 2) {
+                  throw new Error()
+                }
+                index = parseInt(res[1])
               }
+            }
+            value.splice(index, 1)
+          } else if (propType === DataTypes.JSON) {
+            const fstPidx = k.indexOf('.')
+            if (fstPidx !== -1) {
+              key = k.substring(0, fstPidx)
+              value = _.cloneDeep(obj[key])
+              setProp(value, k.substring(fstPidx + 1), undefined)
             } else {
               value = undefined
             }
-            break
-          case 'cover':
-            if (propType === DataTypes.JSON) {
-              const fstPidx = k.indexOf('.')
-              if (fstPidx !== -1) {
-                key = k.substring(0, fstPidx)
-                value = _.cloneDeep(obj[key])
-                setProp(value, k.substring(fstPidx + 1), v)
-              }
+          } else {
+            value = undefined
+          }
+          break
+        case 'cover':
+          if (propType === DataTypes.JSON) {
+            const fstPidx = k.indexOf('.')
+            if (fstPidx !== -1) {
+              key = k.substring(0, fstPidx)
+              value = _.cloneDeep(obj[key])
+              setProp(value, k.substring(fstPidx + 1), v)
             }
-          default:
-        }
-        setProp(obj, key, value)
+          }
+        default:
       }
-      return obj.save().then((result) => {
-        const ret = result.toJSON()
-        // console.log('UUUUUUUUUUUUUU', ret)
-        return ret
-      })
-    } catch (error) {
-      console.error(error.stack)
-      return getErrContent(error)
+      setProp(obj, key, value)
     }
+    return obj.save().then(result => {
+      const ret = result.toJSON()
+      // console.log('UUUUUUUUUUUUUU', ret)
+      return ret
+    })
   }
 
   async save(mdlInf, values, condition, options) {
@@ -571,22 +565,17 @@ export default class Mysql {
       if (condition._index) {
         return this.saveOne(mdlInf, condition._index, values, options)
       } else {
-        const result =
-          (await this.select(mdlInf, condition, { selCols: ['id'] })) || []
+        const result = (await this.select(mdlInf, condition, { selCols: ['id'] })) || []
         if (result.length) {
-          return Promise.all(
-            result.map((entity) =>
-              this.saveOne(mdlInf, entity.id, values, options)
-            )
-          )
+          return Promise.all(result.map(entity => this.saveOne(mdlInf, entity.id, values, options)))
         }
       }
     }
     return mdlInf.model
       .build(values)
       .save()
-      .then((result) => result.toJSON())
-      .catch((err) => getErrContent(err))
+      .then(result => result.toJSON())
+      .catch(err => getErrContent(err))
   }
 
   remove(mdlInf, condition, _options) {
@@ -594,9 +583,7 @@ export default class Mysql {
       condition.id = parseInt(condition._index)
       delete condition._index
     }
-    return mdlInf.model
-      .destroy({ where: condition })
-      .catch((err) => getErrContent(err))
+    return mdlInf.model.destroy({ where: condition }).catch(err => getErrContent(err))
   }
 
   sync(mdlInf) {
@@ -613,20 +600,16 @@ export default class Mysql {
     return mdlInf.model
       .findOne({
         order: [[column, 'DESC']],
-        attributes: [column],
+        attributes: [column]
       })
-      .then((res) => res[column])
+      .then(res => res[column])
   }
 
   async dump(_mdlInf, flPath) {
-    try {
-      return this.exec(
-        readFileSync(/*new URL(*/ flPath /*, import.meta.url)*/, {
-          encoding: 'utf8',
-        })
-      )
-    } catch (error) {
-      return getErrContent(error)
-    }
+    return this.exec(
+      readFileSync(/*new URL(*/ flPath /*, import.meta.url)*/, {
+        encoding: 'utf8'
+      })
+    )
   }
 }

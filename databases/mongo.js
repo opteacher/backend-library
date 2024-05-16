@@ -28,7 +28,7 @@ export default class Mongo {
       Boolean: Boolean,
       Array: Array,
       Object: Map,
-      Any: mongoose.Schema.Types.Mixed,
+      Any: mongoose.Schema.Types.Mixed
     }
     this.Middles = {
       select: 'find',
@@ -38,7 +38,7 @@ export default class Mongo {
       delete: 'remove',
       before: 'pre',
       doing: '',
-      after: 'post',
+      after: 'post'
     }
   }
 
@@ -112,10 +112,10 @@ export default class Mongo {
     if (!options.operate) {
       options.operate = {}
     }
-    const setOperate = (name) => {
+    const setOperate = name => {
       if (!options.operate[name]) {
         options.operate[name] = {
-          columns: Object.keys(struct),
+          columns: Object.keys(struct)
         }
       }
     }
@@ -127,7 +127,7 @@ export default class Mongo {
     const self = this
     // 为子文档设置shema包围
     const types = Object.values(self.PropTypes)
-    const pkgSubProp = (subStt) => {
+    const pkgSubProp = subStt => {
       for (const [prop, val] of Object.entries(subStt)) {
         if (val === self.PropTypes.DateTime) {
           subStt[prop] = {
@@ -185,7 +185,7 @@ export default class Mongo {
       model,
       name,
       struct,
-      options,
+      options
     }
     return this.models[name]
   }
@@ -243,64 +243,58 @@ export default class Mongo {
       condition = {}
     }
 
-    try {
-      await this.connect()
+    await this.connect()
 
-      let selCols = mdlInf.options.operate.select.columns.join(' ')
-      if (options.selCols) {
-        selCols = options.selCols.join(' ')
-      }
-
-      const doSel = (res) => {
-        if (options.ext) {
-          for (const [prop] of Object.entries(
-            Mongo.getRefCollection(mdlInf.struct)
-          )) {
-            res = res.populate(prop)
-          }
-        }
-        return res.exec()
-      }
-
-      if (condition._index) {
-        return doSel(mdlInf.model.findById(condition._index, selCols))
-      }
-
-      let order_by = null
-      if (condition.order_by) {
-        order_by = Object.fromEntries(
-          Object.entries(condition.order_by).map(([prop, order]) => [
-            prop,
-            { 'DESC': -1, 'ASC': 1 }[order.toUpperCase()]
-          ])
-        )
-        delete condition.order_by
-      }
-      let offset = null
-      if (condition.offset) {
-        offset = condition.offset
-        delete condition.offset
-      }
-      let limit = null
-      if (condition.limit) {
-        limit = condition.limit
-        delete condition.limit
-      }
-      this.adjConds(condition)
-      let res = mdlInf.model.find(condition, selCols)
-      if (order_by) {
-        res = res.sort(order_by)
-      }
-      if (offset) {
-        res = res.skip(offset)
-      }
-      if (limit) {
-        res = res.limit(limit)
-      }
-      return doSel(res)
-    } catch (error) {
-      return getErrContent(error)
+    let selCols = mdlInf.options.operate.select.columns.join(' ')
+    if (options.selCols) {
+      selCols = options.selCols.join(' ')
     }
+
+    const doSel = res => {
+      if (options.ext) {
+        for (const [prop] of Object.entries(Mongo.getRefCollection(mdlInf.struct))) {
+          res = res.populate(prop)
+        }
+      }
+      return res.exec()
+    }
+
+    if (condition._index) {
+      return doSel(mdlInf.model.findById(condition._index, selCols))
+    }
+
+    let order_by = null
+    if (condition.order_by) {
+      order_by = Object.fromEntries(
+        Object.entries(condition.order_by).map(([prop, order]) => [
+          prop,
+          { DESC: -1, ASC: 1 }[order.toUpperCase()]
+        ])
+      )
+      delete condition.order_by
+    }
+    let offset = null
+    if (condition.offset) {
+      offset = condition.offset
+      delete condition.offset
+    }
+    let limit = null
+    if (condition.limit) {
+      limit = condition.limit
+      delete condition.limit
+    }
+    this.adjConds(condition)
+    let res = mdlInf.model.find(condition, selCols)
+    if (order_by) {
+      res = res.sort(order_by)
+    }
+    if (offset) {
+      res = res.skip(offset)
+    }
+    if (limit) {
+      res = res.limit(limit)
+    }
+    return doSel(res)
   }
 
   async saveOne(mdlInf, id, values, options) {
@@ -311,80 +305,76 @@ export default class Mongo {
       options.updMode = 'cover'
     }
 
-    try {
-      await this.connect()
-      const obj = await mdlInf.model.findById(id)
-      for (const [k, v] of Object.entries(values)) {
-        const propType = getPropType(mdlInf.struct, k)
-        if (!propType) {
-          continue
-        }
-        let key = k
-        let value = v
-        switch (options.updMode.toLowerCase()) {
-          case 'append':
-            if (propType instanceof String || propType.name === 'Number') {
-              value = getProp(obj, key) + v
-            } else if (propType instanceof Array || propType.name === 'Array') {
-              value = getProp(obj, key).concat(v)
-            }
-            break
-          case 'delete':
-            if (propType instanceof String) {
-              value = ''
-            } else if (propType.name === 'Number') {
-              value = 0
-            } else if (propType instanceof Array || propType.name === 'Array') {
-              let index = -1
-              const lstIdx = key.lastIndexOf('[')
-              if (lstIdx === -1) {
-                value = getProp(obj, key)
-                index = value.indexOf(v)
-              } else {
-                value = getProp(obj, key.substring(0, lstIdx))
-                const idxKey = key.substring(lstIdx)
-                key = key.substring(0, lstIdx)
-                if (idxKey.endsWith('}]')) {
-                  const res = /^\[\{(\w+):(\"?\w+\"?)\}\]$/.exec(idxKey)
-                  if (!res || res.length < 3) {
-                    throw new Error()
-                  }
-                  index = value.findIndex((itm) => itm[res[1]] == res[2])
-                } else {
-                  const res = /^\[(\d+)\]$/.exec(idxKey)
-                  if (!res || res.length < 2) {
-                    throw new Error()
-                  }
-                  index = parseInt(res[1])
-                }
-              }
-              value.splice(index, 1)
-            } else {
-              value = undefined
-            }
-            break
-          case 'merge':
-            if (propType.name === 'Map') {
-              value = getProp(obj, key)
-              if (!value) {
-                value = new Map()
-              }
-              for (const [sk, sv] of Object.entries(v)) {
-                value.set(sk, sv)
-              }
-            } else if (propType instanceof Object) {
-              value = Object.assign(getProp(obj, key) || {}, v)
-            }
-            break
-          case 'cover':
-          default:
-        }
-        setProp(obj, key, value)
+    await this.connect()
+    const obj = await mdlInf.model.findById(id)
+    for (const [k, v] of Object.entries(values)) {
+      const propType = getPropType(mdlInf.struct, k)
+      if (!propType) {
+        continue
       }
-      return obj.save()
-    } catch (error) {
-      return getErrContent(error)
+      let key = k
+      let value = v
+      switch (options.updMode.toLowerCase()) {
+        case 'append':
+          if (propType instanceof String || propType.name === 'Number') {
+            value = getProp(obj, key) + v
+          } else if (propType instanceof Array || propType.name === 'Array') {
+            value = getProp(obj, key).concat(v)
+          }
+          break
+        case 'delete':
+          if (propType instanceof String) {
+            value = ''
+          } else if (propType.name === 'Number') {
+            value = 0
+          } else if (propType instanceof Array || propType.name === 'Array') {
+            let index = -1
+            const lstIdx = key.lastIndexOf('[')
+            if (lstIdx === -1) {
+              value = getProp(obj, key)
+              index = value.indexOf(v)
+            } else {
+              value = getProp(obj, key.substring(0, lstIdx))
+              const idxKey = key.substring(lstIdx)
+              key = key.substring(0, lstIdx)
+              if (idxKey.endsWith('}]')) {
+                const res = /^\[\{(\w+):(\"?\w+\"?)\}\]$/.exec(idxKey)
+                if (!res || res.length < 3) {
+                  throw new Error()
+                }
+                index = value.findIndex(itm => itm[res[1]] == res[2])
+              } else {
+                const res = /^\[(\d+)\]$/.exec(idxKey)
+                if (!res || res.length < 2) {
+                  throw new Error()
+                }
+                index = parseInt(res[1])
+              }
+            }
+            value.splice(index, 1)
+          } else {
+            value = undefined
+          }
+          break
+        case 'merge':
+          if (propType.name === 'Map') {
+            value = getProp(obj, key)
+            if (!value) {
+              value = new Map()
+            }
+            for (const [sk, sv] of Object.entries(v)) {
+              value.set(sk, sv)
+            }
+          } else if (propType instanceof Object) {
+            value = Object.assign(getProp(obj, key) || {}, v)
+          }
+          break
+        case 'cover':
+        default:
+      }
+      setProp(obj, key, value)
     }
+    return obj.save()
   }
 
   async save(mdlInf, values, condition, options) {
@@ -395,23 +385,17 @@ export default class Mongo {
       options.updMode = 'cover'
     }
 
-    try {
-      await this.connect()
+    await this.connect()
 
-      if (condition) {
-        if (condition._index) {
-          return this.saveOne(mdlInf, condition._index, values, options)
-        } else {
-          const result = await mdlInf.model.find(condition)
-          return Promise.all(
-            result.map((res) => this.saveOne(mdlInf, res._id, values, options))
-          )
-        }
+    if (condition) {
+      if (condition._index) {
+        return this.saveOne(mdlInf, condition._index, values, options)
       } else {
-        return new mdlInf.model(values).save()
+        const result = await mdlInf.model.find(condition)
+        return Promise.all(result.map(res => this.saveOne(mdlInf, res._id, values, options)))
       }
-    } catch (error) {
-      return getErrContent(error)
+    } else {
+      return new mdlInf.model(values).save()
     }
   }
 
@@ -424,38 +408,26 @@ export default class Mongo {
       delete condition._index
     }
 
-    try {
-      await this.connect()
-      return mdlInf.model.deleteMany(condition).then((res) => res.deletedCount)
-    } catch (error) {
-      return getErrContent(error)
-    }
+    await this.connect()
+    return mdlInf.model.deleteMany(condition).then(res => res.deletedCount)
   }
 
   async sync(mdlInf) {
-    try {
-      await this.connect()
-      return new Promise((res, rej) => {
-        mdlInf.model.deleteMany({}, (err) => {
-          err ? rej(err) : res()
-        })
+    await this.connect()
+    return new Promise((res, rej) => {
+      mdlInf.model.deleteMany({}, err => {
+        err ? rej(err) : res()
       })
-    } catch (error) {
-      return getErrContent(error)
-    }
+    })
   }
 
   async dump(mdlInf, flPath) {
-    try {
-      await this.connect()
-      const json = await readFile(/*new URL(*/ flPath /*, import.meta.url)*/)
-      const data = await Promise.all(
-        JSON.parse(json).data.map((record) => new mdlInf.model(record).save())
-      )
-      return data.length
-    } catch (error) {
-      return getErrContent(error)
-    }
+    await this.connect()
+    const json = await readFile(/*new URL(*/ flPath /*, import.meta.url)*/)
+    const data = await Promise.all(
+      JSON.parse(json).data.map(record => new mdlInf.model(record).save())
+    )
+    return data.length
   }
 
   count(mdlInf) {
@@ -463,16 +435,12 @@ export default class Mongo {
   }
 
   async max(mdlInf, prop, condition = null) {
-    try {
-      await this.connect()
-      const res = await mdlInf.model
-        .findOne(condition)
-        .select(prop)
-        .sort({ [prop]: -1 })
-        .exec()
-      return res && res[prop] ? res[prop] : 0
-    } catch (error) {
-      return getErrContent(error)
-    }
+    await this.connect()
+    const res = await mdlInf.model
+      .findOne(condition)
+      .select(prop)
+      .sort({ [prop]: -1 })
+      .exec()
+    return res && res[prop] ? res[prop] : 0
   }
 }

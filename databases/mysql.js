@@ -387,14 +387,12 @@ export default class Mysql {
       return mdlInf.model
         .findByPk(index)
         .then(res => (res && options.raw ? res.toJSON() : res))
-        .catch(err => getErrContent(err))
     } else {
       return mdlInf.model
         .findAll(conds)
         .then(ress => ress.filter(res => res))
         .then(ress => (options.raw ? ress.map(res => res.toJSON()) : ress))
         .then(ress => (index !== -1 ? ress[0] : ress))
-        .catch(err => getErrContent(err))
     }
   }
 
@@ -575,7 +573,6 @@ export default class Mysql {
       .build(values)
       .save()
       .then(result => result.toJSON())
-      .catch(err => getErrContent(err))
   }
 
   remove(mdlInf, condition, _options) {
@@ -583,7 +580,7 @@ export default class Mysql {
       condition.id = parseInt(condition._index)
       delete condition._index
     }
-    return mdlInf.model.destroy({ where: condition }).catch(err => getErrContent(err))
+    return mdlInf.model.destroy({ where: condition })
   }
 
   sync(mdlInf) {

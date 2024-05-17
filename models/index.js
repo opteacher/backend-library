@@ -125,7 +125,7 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
         case 'put':
           // @steps{3_3_2_4}:*PUT*：同POST
           router.put(PutUrl, async (ctx) => {
-            const updMode = ctx.request.query.updMode || 'cover'
+            const updMode = ctx.request.query._updMode || 'cover'
             const data = await db.saveOne(
               minfo,
               ctx.params.index,

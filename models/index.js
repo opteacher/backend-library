@@ -30,6 +30,14 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
       .default
     models.push(typeof model === 'function' ? model(db) : model)
   }
+  for (let i = 0; i < models.length; ++i) {
+    if (typeof models[i] === 'string') {
+      const [mname] = models[i].split(' ')
+      const model = (await import(pathPfx + Path.resolve(mdlsPath, mname)))
+        .default
+      models[i] = typeof model === 'function' ? model(db) : model
+    }
+  }
 
   // @step{}:同步数据库
   const syncFunc = async () => {

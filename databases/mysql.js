@@ -249,6 +249,9 @@ export default class Mysql {
         func = 'hasMany'
       }
       // @_@: 存在模型前后加载问题，所关联表可能还未注册到模型表中
+      if (!(table.ref in this.models)) {
+        return `${name} require model ${table.ref}, import it first!`
+      }
       model[func](this.models[table.ref].model, {
         foreignKey: prop,
         constraints: false

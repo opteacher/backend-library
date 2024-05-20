@@ -35,7 +35,7 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
       const [mname] = models[i].split(' ')
       const model = (await import(pathPfx + Path.resolve(mdlsPath, mname + '.js')))
         .default
-      models[i] = typeof model === 'function' ? model(db) : model
+      models.splice(i, 1, typeof model === 'function' ? model(db) : model)
     }
   }
 

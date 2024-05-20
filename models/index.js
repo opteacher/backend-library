@@ -26,17 +26,9 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
   const models = []
   const pathPfx = process.platform === 'win32' ? 'file://' : ''
   for (const mfile of utils.scanPath(mdlsPath, { ignores: ['index.js'] })) {
-    const model = (await import(pathPfx + Path.resolve(mdlsPath, mfile)))
-      .default
+    const model = await import(pathPfx + Path.resolve(mdlsPath, mfile))
+      .then(exp => exp.default)
     models.push(typeof model === 'function' ? model(db) : model)
-  }
-  for (let i = 0; i < models.length; ++i) {
-    if (typeof models[i] === 'string') {
-      const [mname] = models[i].split(' ')
-      const model = (await import(pathPfx + Path.resolve(mdlsPath, mname + '.js')))
-        .default
-      models.splice(i, 1, typeof model === 'function' ? model(db) : model)
-    }
   }
 
   // @step{}:同步数据库

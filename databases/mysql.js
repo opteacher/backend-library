@@ -249,13 +249,21 @@ export default class Mysql {
         func = 'hasMany'
       }
       // @_@: 存在模型前后加载问题，所关联表可能还未注册到模型表中
-      if (!(table.ref in this.models)) {
-        return `${name} require model ${table.ref}, import it first!`
-      }
-      model[func](this.models[table.ref].model, {
-        foreignKey: prop,
-        constraints: false
-      })
+      let countdown = 0
+      const h = setInterval(() => {
+        try {
+          model[func](this.models[table.ref].model, {
+            foreignKey: prop,
+            constraints: false
+          })
+          clearInterval(h)
+        } catch(e) {
+          countdown++
+          if (countdown > 200) {
+            throw new Error('关联模型失败！')
+          }
+        }
+      }, 1000)
     }
     this.models[name] = {
       model,

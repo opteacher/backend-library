@@ -33,7 +33,7 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
   for (let i = 0; i < models.length; ++i) {
     if (typeof models[i] === 'string') {
       const [mname] = models[i].split(' ')
-      const model = (await import(pathPfx + Path.resolve(mdlsPath, mname)))
+      const model = (await import(pathPfx + Path.resolve(mdlsPath, mname + '.js')))
         .default
       models[i] = typeof model === 'function' ? model(db) : model
     }

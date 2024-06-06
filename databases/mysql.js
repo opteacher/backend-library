@@ -257,7 +257,7 @@ export default class Mysql {
             constraints: false
           })
           clearInterval(h)
-        } catch(e) {
+        } catch (e) {
           countdown++
           if (countdown > 200) {
             throw new Error('关联模型失败！')
@@ -395,9 +395,7 @@ export default class Mysql {
       }
     }
     if (index !== -1 && !conds.include) {
-      return mdlInf.model
-        .findByPk(index)
-        .then(res => (res && options.raw ? res.toJSON() : res))
+      return mdlInf.model.findByPk(index).then(res => (res && options.raw ? res.toJSON() : res))
     } else {
       return mdlInf.model
         .findAll(conds)
@@ -619,5 +617,9 @@ export default class Mysql {
         encoding: 'utf8'
       })
     )
+  }
+
+  genId(mdlInf) {
+    return this.max(mdlInf, 'id').then(maxId => maxId + 1)
   }
 }

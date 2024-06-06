@@ -430,8 +430,9 @@ export default class Mongo {
     return data.length
   }
 
-  count(mdlInf) {
-    return this.connect().then(() => mdlInf.model.count())
+  async count(mdlInf) {
+    await this.connect()
+    return mdlInf.model.count()
   }
 
   async max(mdlInf, prop, condition = null) {
@@ -442,5 +443,9 @@ export default class Mongo {
       .sort({ [prop]: -1 })
       .exec()
     return res && res[prop] ? res[prop] : 0
+  }
+
+  genId() {
+    return Promise.resolve(mongoose.Types.ObjectId())
   }
 }

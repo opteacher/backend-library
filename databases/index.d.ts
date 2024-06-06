@@ -70,6 +70,7 @@ declare class DataBase {
   connect(): Promise<Conn>
   disconnect(): Promise<void>
   useDataBase(dbName: string): Promise<boolean>
+  genId(mdlInf: MdlInf): Promise<any>
   defineModel(
     name: string,
     struct: NamedStruct,

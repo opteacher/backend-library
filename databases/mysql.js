@@ -136,7 +136,7 @@ export default class Mysql {
     const adjStt = _.cloneDeep(struct)
     const addTypePfx = value => {
       if (typeof value === 'object') {
-        return `o${JSON.stringify(value)}`
+        return `o${encodeURIComponent(JSON.stringify(value))}`
       } else if (typeof value === 'number') {
         if (Math.floor(value) === value) {
           return `n${value}`
@@ -152,7 +152,7 @@ export default class Mysql {
     const rmvTypePfx = text => {
       switch (text[0]) {
         case 'o':
-          return JSON.parse(text.substring(1))
+          return JSON.parse(decodeURIComponent(text.substring(1)))
         case 'n':
           return parseInt(text.substring(1))
         case 'd':

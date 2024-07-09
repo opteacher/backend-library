@@ -75,7 +75,7 @@ export default class Mysql {
         this.config.username,
         this.config.password,
         {
-          logging: false,
+          logging: console.log,
           host: this.config.host,
           dialect: 'mysql',
 
@@ -252,20 +252,13 @@ export default class Mysql {
         func = 'hasMany'
       }
       // @_@: 存在模型前后加载问题，所关联表可能还未注册到模型表中
-      setImmediate(async () => {
-        for (let countdown = 0; countdown < 200; ++countdown) {
-          if (this.models[table.ref]) {
-            model[func](this.models[table.ref].model, {
-              foreignKey: prop,
-              constraints: false
-            })
-            break
-          }
-          await new Promise(resolve => setTimeout(resolve, 500))
-        }
-        if (!this.models[table.ref]) {
-          throw new Error('关联模型失败！')
-        }
+      // @_@：尝试在setImmdiate内执行关联，但失败，代码回退到之前版本，加载问题依旧未解决
+      if (!(table.ref in this.models)) {
+        return `${name} require model ${table.ref}, import it first!`
+      }
+      model[func](this.models[table.ref].model, {
+        foreignKey: prop,
+        constraints: false
       })
     }
     this.models[name] = {

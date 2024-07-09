@@ -48,13 +48,12 @@ export default class Mysql {
   static getRefCollection(struct) {
     const ret = {}
     for (const [key, val] of Object.entries(struct)) {
-      let value = val
-      if (val.length && val[0] && val[0].ref) {
-        ret[key] = { array: val.length }
-        value = val[0]
-      }
-      if (value.ref) {
+      let value = val.length ? val[0] : val
+      if (value && value.ref) {
         ret[key] = { ref: value.ref }
+        if (val.length) {
+          ret[key].array = val.length
+        }
         if (typeof value.belong === 'undefined') {
           ret[key].belong = !ret[key].array
         } else {
@@ -253,21 +252,21 @@ export default class Mysql {
         func = 'hasMany'
       }
       // @_@: 存在模型前后加载问题，所关联表可能还未注册到模型表中
-      let countdown = 0
-      const h = setInterval(() => {
-        try {
-          model[func](this.models[table.ref].model, {
-            foreignKey: prop,
-            constraints: false
-          })
-          clearInterval(h)
-        } catch (e) {
-          countdown++
-          if (countdown > 200) {
-            throw new Error('关联模型失败！')
+      setImmediate(async () => {
+        for (let countdown = 0; countdown < 200; ++countdown) {
+          if (this.models[table.ref]) {
+            model[func](this.models[table.ref].model, {
+              foreignKey: prop,
+              constraints: false
+            })
+            break
           }
+          await new Promise(resolve => setTimeout(resolve, 500))
         }
-      }, 1000)
+        if (!this.models[table.ref]) {
+          throw new Error('关联模型失败！')
+        }
+      })
     }
     this.models[name] = {
       model,
@@ -480,7 +479,7 @@ export default class Mysql {
             case 'cover':
             default:
               const records = await Promise.all(value.map(sv => refMdl.model.findByPk(sv)))
-              await obj[`set${key}`](records)
+              await obj[`set${_.pluralize(key)}`](records)
               break
           }
         }

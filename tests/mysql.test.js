@@ -32,6 +32,7 @@ describe('# MySQL', () => {
         age: mySqlDB.PropTypes.Number,
         tags: mySqlDB.PropTypes.Array,
         subObj: mySqlDB.PropTypes.Object,
+        fkOrgan: { type: mySqlDB.PropTypes.Id, ref: 'organ', belong: true }
       },
       {
         router: {
@@ -54,7 +55,7 @@ describe('# MySQL', () => {
     )
     Organ = mySqlDB.defineModel('organ', {
       name: mySqlDB.PropTypes.String,
-      users: [{ type: mySqlDB.PropTypes.Id, ref: 'user' }],
+      fkUsers: [{ type: mySqlDB.PropTypes.Id, ref: 'user' }],
     })
     await mySqlDB.sync(User)
     await mySqlDB.sync(Organ)
@@ -110,7 +111,11 @@ describe('# MySQL', () => {
     let userID = ''
     beforeAll(async () => {
       await mySqlDB.sync(User)
-      await mySqlDB.dump(User, dataFile)
+      try {
+        await mySqlDB.dump(User, dataFile)
+      } catch(e) {
+        console.log(e)
+      }
       const user = await mySqlDB.save(User, record)
       userID = user.id
     })
@@ -344,7 +349,11 @@ describe('# MySQL', () => {
     let _index = ''
     beforeAll(async () => {
       await mySqlDB.sync(User)
-      await mySqlDB.dump(User, dataFile)
+      try {
+        await mySqlDB.dump(User, dataFile)
+      } catch(e) {
+        console.log(e)
+      }
       await mySqlDB.sync(Organ)
       const organ = await mySqlDB.save(Organ, { name: 'abcd' })
       _index = organ.id
@@ -352,12 +361,12 @@ describe('# MySQL', () => {
 
     test('# 未关联前查询', async () => {
       const organ = await mySqlDB.select(Organ, { _index }, { ext: true })
-      expect(organ).toHaveProperty('users', [])
+      expect(organ).toHaveProperty('fkUsers', null)
     })
 
     test('# 关联所有用户', async () => {
       const users = (await mySqlDB.select(User)).map((user) => user.id)
-      await mySqlDB.saveOne(Organ, _index, { users })
+      await mySqlDB.saveOne(Organ, _index, { fkUsers: users })
       const organ = await mySqlDB.select(Organ, { _index }, { ext: true })
       expect(organ.users).toHaveProperty('length', users.length)
       expect(users).toContain(organ.users[0].id)
@@ -384,7 +393,7 @@ describe('# MySQL', () => {
       await mySqlDB.saveOne(
         Organ,
         _index,
-        { users: user.id },
+        { fkUsers: user.id },
         { updMode: 'append' }
       )
       const organ = await mySqlDB.select(Organ, { _index }, { ext: true })

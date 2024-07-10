@@ -24,18 +24,13 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
   // @steps{1}:引进所有模型
   let models = []
   const pathPfx = process.platform === 'win32' ? 'file://' : ''
+  console.log(utils.scanPath(mdlsPath, { ignores: ['index.js'] }))
   for (const mfile of utils.scanPath(mdlsPath, { ignores: ['index.js'] })) {
     const model = await import(pathPfx + Path.resolve(mdlsPath, mfile)).then(exp => exp.default)
     models.push(typeof model === 'function' ? model(db) : model)
   }
-  // 修正模型注册表中依赖其他模块的模块
-  for (const mName of models) {
-    if (typeof mName === 'string') {
-      const mfile = utils.fixEndsWith(mName.split(' ').shift(), '.js')
-      const model = await import(pathPfx + Path.resolve(mdlsPath, mfile)).then(exp => exp.default)
-      models.push(typeof model === 'function' ? model(db) : model)
-    }
-  }
+  // 构建关联关系
+  await db.buildAssocs()
 
   // @step{}:同步数据库
   const syncFunc = async () => {

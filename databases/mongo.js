@@ -448,4 +448,8 @@ export default class Mongo {
   genId() {
     return Promise.resolve(mongoose.Types.ObjectId())
   }
+
+  buildAssocs() {
+    return Promise.resolve()
+  }
 }

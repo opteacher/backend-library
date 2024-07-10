@@ -240,27 +240,6 @@ export default class Mysql {
     }
 
     const model = this.sequelize.define(name, adjStt, moptions)
-    // belong参数指明该模型以何种形式与关联到外部表。e.g:
-    // 1. A表的外键b: { type: DataTypes.ID, ref: 'B', belong: true }。则有A.belongsTo(B, { foreignKey: 'b' })
-    // 2. A表的外键b: { type: DataTypes.ID, ref: 'B', belong: false }。则有A.hasOne(B, { foreignKey: 'b' })
-    // 3. A表的外键bs: [{ type: DataTypes.ID, ref: 'B', belong: true }]。【不支持】
-    // 4. A表的外键bs: [{ type: DataTypes.ID, ref: 'B', belong: false }]。则有A.hasMany(B, { foreignKey: 'bs' })
-    // * 注意：不带belong参数时，默认以2和4关联
-    for (const [prop, table] of Object.entries(foreignProps)) {
-      let func = table.belong ? 'belongsTo' : 'hasOne'
-      if (table.array) {
-        func = 'hasMany'
-      }
-      // @_@: 存在模型前后加载问题，所关联表可能还未注册到模型表中
-      // @_@：尝试在setImmdiate内执行关联，但失败，代码回退到之前版本，加载问题依旧未解决
-      if (!(table.ref in this.models)) {
-        return `${name} require model ${table.ref}, import it first!`
-      }
-      model[func](this.models[table.ref].model, {
-        foreignKey: prop,
-        constraints: false
-      })
-    }
     this.models[name] = {
       model,
       name,
@@ -268,6 +247,33 @@ export default class Mysql {
       options
     }
     return this.models[name]
+  }
+
+  buildAssocs() {
+    for (const model of Object.values(this.models)) {
+      const foreignProps = Mysql.getRefCollection(model.struct)
+      // belong参数指明该模型以何种形式与关联到外部表。e.g:
+      // 1. A表的外键b: { type: DataTypes.ID, ref: 'B', belong: true }。则有A.belongsTo(B, { foreignKey: 'b' })
+      // 2. A表的外键b: { type: DataTypes.ID, ref: 'B', belong: false }。则有A.hasOne(B, { foreignKey: 'b' })
+      // 3. A表的外键bs: [{ type: DataTypes.ID, ref: 'B', belong: true }]。【不支持】
+      // 4. A表的外键bs: [{ type: DataTypes.ID, ref: 'B', belong: false }]。则有A.hasMany(B, { foreignKey: 'bs' })
+      // * 注意：不带belong参数时，默认以2和4关联
+      for (const [prop, table] of Object.entries(foreignProps)) {
+        let func = table.belong ? 'belongsTo' : 'hasOne'
+        if (table.array) {
+          func = 'hasMany'
+        }
+        // @_@: 存在模型前后加载问题，所关联表可能还未注册到模型表中
+        // @_@：尝试在setImmdiate内执行关联，但失败，代码回退到之前版本，加载问题依旧未解决
+        if (!(table.ref in this.models)) {
+          return `${model.name} require model ${table.ref}, import it first!`
+        }
+        model.model[func](this.models[table.ref].model, {
+          foreignKey: prop,
+          constraints: false
+        })
+      }
+    }
   }
 
   adjConds(conds) {

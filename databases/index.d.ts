@@ -76,6 +76,7 @@ declare class DataBase {
     struct: NamedStruct,
     options?: DefineOptions
   ): MdlInf
+  buildAssocs(): Promise<any>
   select(mdlInf: MdlInf, condition?: any, options?: SelectOptions): Promise<any>
   save(
     mdlInf: MdlInf,

@@ -8,8 +8,7 @@ import { getDbByName } from '../databases/index.js'
 const router = new Router()
 
 export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
-  const cfg =
-    typeof mdlConfig === 'string' ? utils.readConfig(mdlConfig) : mdlConfig
+  const cfg = typeof mdlConfig === 'string' ? utils.readConfig(mdlConfig) : mdlConfig
   const mdlSections = ['type', 'version', 'sync', 'init', 'prefix']
   Object.assign(cfg, utils.buildCfgFromPcs(mdlSections, 'models'))
   if (!db) {
@@ -23,37 +22,39 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
   // @includes:../config/model.json
 
   // @steps{1}:引进所有模型
-  const models = []
+  let models = []
   const pathPfx = process.platform === 'win32' ? 'file://' : ''
   for (const mfile of utils.scanPath(mdlsPath, { ignores: ['index.js'] })) {
-    const model = await import(pathPfx + Path.resolve(mdlsPath, mfile))
-      .then(exp => exp.default)
+    const model = await import(pathPfx + Path.resolve(mdlsPath, mfile)).then(exp => exp.default)
     models.push(typeof model === 'function' ? model(db) : model)
+  }
+  // 修正模型注册表中依赖其他模块的模块
+  for (const mName of models) {
+    if (typeof mName === 'string') {
+      const mfile = utils.fixEndsWith(mName.split(' ').shift(), '.js')
+      const model = await import(pathPfx + Path.resolve(mdlsPath, mfile)).then(exp => exp.default)
+      models.push(typeof model === 'function' ? model(db) : model)
+    }
   }
 
   // @step{}:同步数据库
   const syncFunc = async () => {
     if (cfg.sync && Array.isArray(cfg.sync)) {
-      await Promise.all(
-        cfg.sync.map((tname) =>
-          db.sync(models.find((model) => model.name === tname))
-        )
-      )
+      await Promise.all(cfg.sync.map(tname => db.sync(models.find(model => model.name === tname))))
       console.log('数据库模型同步完毕')
     } else if (cfg.sync) {
-      await Promise.all(_.values(models).map((minfo) => db.sync(minfo)))
+      console.log(models)
+      await Promise.all(_.values(models).map(minfo => db.sync(minfo)))
       console.log('数据库模型同步完毕')
     }
     if (cfg.inits) {
       for (const [mname, initFile] of Object.entries(cfg.inits)) {
-        await db.sync(models.find((model) => model.name === mname))
+        await db.sync(models.find(model => model.name === mname))
         const numIpt = await db.dump(
-          models.find((model) => model.name === mname),
+          models.find(model => model.name === mname),
           Path.resolve(initFile)
         )
-        console.log(
-          `从${initFile}文件内读取并导入了${numIpt}条记录到表${mname}中`
-        )
+        console.log(`从${initFile}文件内读取并导入了${numIpt}条记录到表${mname}中`)
       }
     }
   }
@@ -77,84 +78,67 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
       switch (method.toLowerCase()) {
         case 'get':
           // @steps{3_3_2_1}:*GET*：根据id查找，**会联表**
-          router.get(GetUrl, async (ctx) => {
+          router.get(GetUrl, async ctx => {
             if (ctx.params.index.toLocaleLowerCase() === 's') {
               const ext = ctx.request.query._ext
               delete ctx.request.query._ext
               ctx.body = {
-                data: await db.select(
-                  minfo,
-                  ctx.request.query,
-                  ext ? { ext: true } : undefined
-                )
+                data: await db.select(minfo, ctx.request.query, ext ? { ext: true } : undefined)
               }
             } else {
-              const data = await db.select(
-                minfo,
-                { _index: ctx.params.index },
-                { ext: true }
-              )
+              const data = await db.select(minfo, { _index: ctx.params.index }, { ext: true })
               if (typeof data === 'string') {
                 ctx.body = {
-                  error: data,
+                  error: data
                 }
               } else {
                 ctx.body = {
-                  data: data,
+                  data: data
                 }
               }
             }
           })
           path = GetUrl
-          params.push(
-            { order_by: 'Prop Name' },
-            { limit: 'Number' },
-            { page: 'Number' }
-          )
+          params.push({ order_by: 'Prop Name' }, { limit: 'Number' }, { page: 'Number' })
           console.log(`GET\t${GetUrl}`)
           break
         case 'post':
           // @steps{3_3_2_3}:*POST*：**使用form表单提交**
-          router.post(PostUrl, async (ctx) => {
+          router.post(PostUrl, async ctx => {
             ctx.body = {
-              data: await db.save(minfo, ctx.request.body),
+              data: await db.save(minfo, ctx.request.body)
             }
           })
           console.log(`POST\t${PostUrl}`)
           break
         case 'put':
           // @steps{3_3_2_4}:*PUT*：同POST
-          router.put(PutUrl, async (ctx) => {
+          router.put(PutUrl, async ctx => {
             const updMode = ctx.request.query._updMode || 'cover'
-            const data = await db.saveOne(
-              minfo,
-              ctx.params.index,
-              ctx.request.body,
-              { updMode }
-            )
+            const data = await db.saveOne(minfo, ctx.params.index, ctx.request.body, { updMode })
             if (typeof data === 'string') {
               ctx.body = {
-                error: data,
+                error: data
               }
             } else {
               ctx.body = {
-                data,
+                data
               }
             }
           })
           path = PutUrl
           params.push({
-            need_update_prop: 'value',
+            need_update_prop: 'value'
           })
           console.log(`PUT\t${PutUrl}`)
           break
         case 'delete':
           // @steps{3_3_2_5}:*DELETE*：同GET
-          router.delete(DelUrl, async (ctx) => {
+          router.delete(DelUrl, async ctx => {
             ctx.body = {
               data: await db.remove(minfo, {
-                _index: ctx.params.index,
-              }),
+                _index: ctx.params.index
+              })
             }
           })
           path = DelUrl
@@ -175,11 +159,11 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
               continue
             }
             const LnkUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}/:parent_idx/${prop}/:child_idx`
-            router.put(LnkUrl, async (ctx) => {
+            router.put(LnkUrl, async ctx => {
               // 对于数组外键，不可重复绑定
               if (value instanceof Array) {
                 const data = await db.select(minfo, {
-                  _index: ctx.params.parent_idx,
+                  _index: ctx.params.parent_idx
                 })
                 if (data[prop].includes(ctx.params.child_idx)) {
                   ctx.body = { data }
@@ -192,46 +176,46 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
                   ctx.params.parent_idx,
                   { [prop]: ctx.params.child_idx },
                   { updMode: 'append' }
-                ),
+                )
               }
             })
             mdlRoutes.push({
               path: LnkUrl,
               method: 'PUT',
-              params: [],
+              params: []
             })
             console.log(`PUT\t${LnkUrl}`)
-            router.delete(LnkUrl, async (ctx) => {
+            router.delete(LnkUrl, async ctx => {
               ctx.body = {
                 data: await db.saveOne(
                   minfo,
                   ctx.params.parent_idx,
                   { [prop]: ctx.params.child_idx },
                   { updMode: 'delete' }
-                ),
+                )
               }
             })
             mdlRoutes.push({
               path: LnkUrl,
               method: 'DELETE',
-              params: [],
+              params: []
             })
             console.log(`DELETE\t${LnkUrl}`)
             const ClrUrl = `/${cfg.prefix}/mdl/v${cfg.version}/${minfo.name}/:parent_idx/${prop}`
-            router.delete(ClrUrl, async (ctx) => {
+            router.delete(ClrUrl, async ctx => {
               ctx.body = {
                 data: await db.saveOne(
                   minfo,
                   ctx.params.parent_idx,
                   { [prop]: value instanceof Array ? [] : '' },
                   { updMode: 'cover' }
-                ),
+                )
               }
             })
             mdlRoutes.push({
               path: ClrUrl,
               method: 'DELETE',
-              params: [],
+              params: []
             })
             console.log(`DELETE\t${ClrUrl}`)
           }
@@ -240,11 +224,11 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
       mdlRoutes.push({
         path,
         method,
-        params,
+        params
       })
     }
   }
-  router.get(`/${cfg.prefix}/mdl/v${cfg.version}`, async (ctx) => {
+  router.get(`/${cfg.prefix}/mdl/v${cfg.version}`, async ctx => {
     ctx.body = { version: cfg.version, routes: mdlRoutes }
   })
   console.log(`GET\t/${cfg.prefix}/mdl/v${cfg.version}`)

@@ -543,7 +543,32 @@ export default class Mysql {
           }
           break
         case 'cover':
-          if (propType === DataTypes.JSON) {
+          if (propType === DataTypes.ARRAY) {
+            let eleKey = k
+            let subKey = ''
+            const fstPidx = k.indexOf('.')
+            if (fstPidx !== -1) {
+              eleKey = k.substring(0, fstPidx)
+              subKey = k.substring(fstPidx + 1)
+            }
+            if (eleKey.endsWith(']')) {
+              const res = /\[(\d+)\]$/.exec(eleKey)
+              if (!res || res.length < 2) {
+                throw new Error()
+              }
+              const quotIdx = eleKey.indexOf('[')
+              key = eleKey.substring(0, quotIdx)
+              const index = parseInt(res[1])
+              let eleVal = _.cloneDeep(obj[key][index])
+              if (subKey) {
+                setProp(eleVal, subKey, v)
+              } else {
+                eleVal = v
+              }
+              value = _.cloneDeep(obj[key])
+              value[index] = eleVal
+            }
+          } else if (propType === DataTypes.JSON) {
             const fstPidx = k.indexOf('.')
             if (fstPidx !== -1) {
               key = k.substring(0, fstPidx)

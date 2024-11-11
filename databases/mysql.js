@@ -354,7 +354,7 @@ export default class Mysql {
 
     let index = -1
     const conds = {}
-    if (Object.keys(condition).length !== 0 && Object.getOwnPropertySymbols(condition).length !== 0) {
+    if (Object.keys(condition).length !== 0 || Object.getOwnPropertySymbols(condition).length !== 0) {
       if (condition._index) {
         index = parseInt(condition._index)
         delete condition._index

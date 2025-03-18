@@ -163,7 +163,7 @@ export default class Mysql {
           return text.substring(1)
       }
     }
-    const moptions = { hooks: {} }
+    const moptions = { hooks: {}, timestamps: options.timestamps }
     const foreignProps = Mysql.getRefCollection(struct)
     const foreignKeys = Object.keys(foreignProps)
     for (const [pname, prop] of Object.entries(adjStt)) {

@@ -154,7 +154,7 @@ export default class Mongo {
     const adjStt = _.cloneDeep(struct)
     pkgSubProp(adjStt)
 
-    const schema = mongoose.Schema(adjStt)
+    const schema = mongoose.Schema(adjStt, { timestamps: options.timestamps })
     for (const [obs, v] of Object.entries(options.middle)) {
       if (!(obs in self.Middles)) {
         continue

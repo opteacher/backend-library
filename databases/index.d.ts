@@ -29,6 +29,7 @@ interface DefineOptions extends IndexStruct {
     prePath?: [any, string][]
     methods: Method[]
   }
+  timestamps?: boolean
 }
 
 interface SelectOptions extends IndexStruct {

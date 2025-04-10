@@ -316,14 +316,14 @@ export default class Mongo {
       let value = v
       switch (options.updMode.toLowerCase()) {
         case 'append':
-          if (propType instanceof String || propType.name === 'Number') {
+          if (propType === String || propType.name === 'Number') {
             value = getProp(obj, key) + v
           } else if (propType instanceof Array || propType.name === 'Array') {
             value = getProp(obj, key).concat(v)
           }
           break
         case 'delete':
-          if (propType instanceof String) {
+          if (propType === String) {
             value = ''
           } else if (propType.name === 'Number') {
             value = 0

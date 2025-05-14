@@ -160,7 +160,7 @@ export async function genMdlRoutes(mdlsPath, mdlConfig, db) {
                 const data = await db.select(minfo, {
                   _index: ctx.params.parent_idx
                 })
-                if (data[prop].includes(ctx.params.child_idx)) {
+                if ((data[prop] || []).includes(ctx.params.child_idx)) {
                   ctx.body = { data }
                   return
                 }

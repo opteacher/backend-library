@@ -399,7 +399,7 @@ export default class Mysql {
         })
       }
     }
-    if (index !== -1 && !conds.include) {
+    if (index !== -1) {
       return mdlInf.model
         .findByPk(index, conds)
         .then(res => (res && options.raw ? res.toJSON() : res))

@@ -354,7 +354,10 @@ export default class Mysql {
 
     let index = -1
     const conds = {}
-    if (Object.keys(condition).length !== 0 || Object.getOwnPropertySymbols(condition).length !== 0) {
+    if (
+      Object.keys(condition).length !== 0 ||
+      Object.getOwnPropertySymbols(condition).length !== 0
+    ) {
       if (condition._index) {
         index = parseInt(condition._index)
         delete condition._index
@@ -397,7 +400,9 @@ export default class Mysql {
       }
     }
     if (index !== -1 && !conds.include) {
-      return mdlInf.model.findByPk(index).then(res => (res && options.raw ? res.toJSON() : res))
+      return mdlInf.model
+        .findByPk(index, conds)
+        .then(res => (res && options.raw ? res.toJSON() : res))
     } else {
       return mdlInf.model
         .findAll(conds)

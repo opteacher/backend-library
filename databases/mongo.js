@@ -24,6 +24,7 @@ export default class Mongo {
       String: String,
       LongStr: String,
       Number: Number,
+      Decimal: mongoose.Types.Decimal128,
       DateTime: Date,
       Boolean: Boolean,
       Array: Array,

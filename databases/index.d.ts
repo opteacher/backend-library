@@ -9,6 +9,7 @@ type Type =
   | 'String'
   | 'LongStr'
   | 'Number'
+  | 'Decimal'
   | 'Date'
   | 'Boolean'
   | 'Array'

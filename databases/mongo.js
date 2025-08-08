@@ -392,7 +392,7 @@ export default class Mongo {
       if (condition._index) {
         return this.saveOne(mdlInf, condition._index, values, options)
       } else {
-        const result = await mdlInf.model.find(condition)
+        const result = await this.select(mdlInf, condition)
         return Promise.all(result.map(res => this.saveOne(mdlInf, res._id, values, options)))
       }
     } else {

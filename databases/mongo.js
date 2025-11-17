@@ -432,7 +432,7 @@ export default class Mongo {
   }
 
   async count(mdlInf, condition) {
-    const conds = { where: condition || {} }
+    const conds = condition || {}
     this.adjConds(conds)
     await this.connect()
     return mdlInf.model.count(conds)

@@ -431,9 +431,11 @@ export default class Mongo {
     return data.length
   }
 
-  async count(mdlInf) {
+  async count(mdlInf, condition) {
+    const conds = { where: condition || {} }
+    this.adjConds(conds)
     await this.connect()
-    return mdlInf.model.count()
+    return mdlInf.model.count(conds)
   }
 
   async max(mdlInf, prop, condition = null) {
